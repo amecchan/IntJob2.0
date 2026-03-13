@@ -1,0 +1,47 @@
+### Django ###
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# --- Python / Django (Backend) ---
+venv/
+__pycache__/
+*.pyc
+db.sqlite3
+.env
+env/
+
+# --- Node / React (Frontend) ---
+node_modules/
+dist/
+build/
+.env.local
+
+# --- OS / System Files ---
+.DS_Store
+Thumbs.db

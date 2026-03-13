@@ -1,0 +1,69 @@
+/* src/components/modals/AuthModal.module.css */
+
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modalContent {
+  background: #fff;
+  padding: 40px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+  position: relative;
+  color: #000;
+}
+
+.closeModal {
+  position: absolute;
+  top: 15px; right: 15px;
+  background: none; border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.formGroup input {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.muted {
+  font-size: 0.9rem;
+  color: #919191;
+  margin-top: 8px;
+}
+
+.forgotLink {
+  background: none; border: none;
+  color: #2563eb;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 5px 0;
+  text-align: left;
+}
+
+.forgotLink:hover { text-decoration: underline; }

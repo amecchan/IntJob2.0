@@ -1,0 +1,28 @@
+:root {
+  --bg: #f9fafb;
+  --card: #02176d;
+  --text: #000000;
+  --accent: #2563eb;
+  --shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  --radius: 12px;
+}
+
+/* RESET */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.6;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+img {
+  max-width: 100%; /* Never wider than its container */
+  height: auto;    /* Maintains aspect ratio */
+  display: block;  /* Removes the ghost space underneath */
+}
