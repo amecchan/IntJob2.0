@@ -1,16 +1,34 @@
-# React + Vite
+# IntJob - Employer & Job Matching Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**IntJob** is a professional recruitment dashboard designed to streamline the hiring process. This project was developed as part of a research study focusing on bridging the gap between employers and skilled candidates.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀Features
 
-## React Compiler
+* **Employer Dashboard:** Real-time stats on job postings and applicant volume.
+* **Dynamic Job Management:** Create, Edit, and Toggle status for job openings.
+* **Applicant Tracking System (ATS):** Global view of all applicants with status management (Shortlisted, Rejected, etc.).
+* **Bulk Actions:** Download all candidate resumes in a single ZIP file.
+* **Secure Authentication:** Role-based access control for Employers and Applicants.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Frontend
+
+* **React + Vite** - Modern frontend framework for a fast developer experience.
+* **Tailwind CSS** - Utility-first CSS for custom, responsive UI design.
+* **Radix UI & Lucide Icons** - Accessible, high-quality primitive components.
+* **React Router** - For dynamic routing and protected dashboard navigation.
+
+### Backend & Database
+
+* **Django (Python)** - Robust REST API framework.
+* **PostgreSQL** - Relational database for structured data management.
+* **Firebase** - Utilized for real-time authentication and cloud messaging.
+* **Cloudinary** - Cloud-based image and file management (Resumes & Profile Photos).
+
+---
+
