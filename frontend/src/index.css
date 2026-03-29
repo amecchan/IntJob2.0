@@ -1,28 +1,32 @@
-:root {
-  --bg: #f9fafb;
-  --card: #02176d;
-  --text: #000000;
-  --accent: #2563eb;
-  --shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-  --radius: 12px;
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg: #f9fafb;
+    --card: #02176d;
+    --text: #000000;
+    --accent: #2563eb;
+    --primary-blue: #0051d3;
+  }
+
+  body {
+    @apply font-sans text-black bg-[#f9fafb] antialiased;
+  }
 }
 
-/* RESET */
-* { box-sizing: border-box; margin: 0; padding: 0; }
+@layer components {
+  /* Use fixed positioning to center the modal on screen */
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4;
+  }
 
-body {
-  font-family: 'Inter', sans-serif;
-  color: var(--text);
-  background: var(--bg);
-  line-height: 1.6;
-}
+  /* Explicitly set a white background and padding */
+  .auth-modal-content {
+    @apply bg-white rounded-2xl p-8 w-full max-w-[420px] relative shadow-2xl flex flex-col gap-1;
+  }
 
-html {
-  scroll-behavior: smooth;
-}
-
-img {
-  max-width: 100%; /* Never wider than its container */
-  height: auto;    /* Maintains aspect ratio */
-  display: block;  /* Removes the ghost space underneath */
+  /* Force vertical spacing on the form */
+  .auth-form-container {
+    @apply flex flex-col gap-4 mt-4;
+  }
 }

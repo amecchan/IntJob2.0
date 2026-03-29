@@ -1,0 +1,23 @@
+/* src/styles/topnav.css */
+@import "tailwindcss";
+
+.topnav-container {
+  @apply h-10 flex justify-between items-center px-8 sticky top-0 z-50 transition-all duration-300;
+  z-index: 50;
+}
+
+.topnav-search-wrapper {
+  @apply flex-1 max-w-md relative;
+}
+
+.search-input {
+  @apply w-full bg-white/10 border border-white/20 rounded-2xl py-2.5 pl-12 pr-4 text-sm text-white placeholder:text-white/60 outline-none focus:bg-white/20 focus:ring-2 focus:ring-white/30 transition-all;
+}
+
+.notification-btn {
+  @apply p-3 bg-white/10 text-white rounded-2xl relative hover:bg-white/20 transition-all border border-white/10 active:scale-95;
+}
+
+.notification-badge {
+  @apply absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#5850ec] animate-pulse;
+}

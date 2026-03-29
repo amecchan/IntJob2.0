@@ -1,0 +1,33 @@
+/* src/styles/StatCard.css */
+@import "tailwindcss";
+
+.stat-card-container {
+  @apply bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm 
+         hover:shadow-md hover:-translate-y-1 transition-all duration-300 
+         relative overflow-hidden;
+}
+
+.stat-icon-wrapper {
+  @apply p-2.5 rounded-xl flex items-center justify-center shadow-inner;
+}
+
+.live-view-badge {
+  @apply text-[9px] font-black text-slate-300 uppercase tracking-widest 
+         group-hover:text-indigo-500 transition-colors pt-1;
+}
+
+.stat-value {
+  @apply text-4xl font-black text-slate-900 tracking-tighter leading-none;
+}
+
+.stat-label {
+  @apply text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mt-1;
+}
+
+.stat-footer {
+  @apply mt-4 pt-4 border-t border-slate-50 flex items-center;
+}
+
+.stat-trend {
+  @apply text-[10px] font-black tracking-tight;
+}

@@ -1,5 +1,9 @@
 from django.apps import AppConfig
 
 
-class ApiConfig(AppConfig):
+class AppConfig(AppConfig): # Replace with your actual app name
+    default_auto_field = 'django.db.models.BigAutoField'
     name = 'api'
+
+    def ready(self):
+        import api.signals # This "turns on" the listener

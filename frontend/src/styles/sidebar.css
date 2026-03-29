@@ -1,0 +1,54 @@
+/* src/styles/sidebar.css */
+@import "tailwindcss";
+
+.sidebar-container {
+  @apply w-64 h-screen bg-[#2D3748] text-white flex flex-col sticky top-0 shadow-2xl;
+}
+
+.sidebar-logo {
+  @apply p-8 text-2xl font-black tracking-tighter flex items-center gap-2;
+}
+
+.sidebar-logo span {
+  @apply text-blue-400; /* The 'Job' part of IntJob */
+}
+
+.sidebar-nav {
+  @apply flex-1 px-4 space-y-1 mt-2;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  color: #94a3b8; /* Faded color for inactive tabs */
+  background: transparent;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent; /* Hidden line by default */
+}
+
+/* 2. Hover effect (Temporary) */
+/* Hover state: Just a slight change in text brightness */
+.sidebar-link:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.sidebar-link-active {
+  background: rgba(99, 102, 241, 0.1) !important; /* Very faint indigo */
+  color: #818cf8 !important; /* Bright Indigo text */
+  border-left: 3px solid #6366f1 !important; /* Blue indicator line */
+  font-weight: 700;
+}
+
+.sidebar-logout {
+  @apply w-full flex items-center gap-3 px-4 py-3 rounded-lg text-[13px] font-semibold text-red-400 hover:bg-red-500/10 transition-all mt-auto mb-6;
+}
+
+.sidebar-user-card {
+  @apply p-4 mx-4 mb-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 flex items-center gap-3;
+}

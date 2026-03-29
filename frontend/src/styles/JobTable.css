@@ -1,0 +1,44 @@
+/* src/styles/JobTable.css */
+@import "tailwindcss";
+
+.content-card {
+  @apply bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden transition-all duration-300;
+  width: 100%; /* Explicitly set to 100% */
+}
+
+.card-header {
+  @apply p-8 border-b border-slate-50 flex justify-between items-center bg-white;
+}
+
+.card-body {
+  @apply p-8 pt-2 w-full;
+}
+
+.dashboard-table {
+  @apply w-full text-justify border-separate border-spacing-y-0 min-w-full;
+}
+
+.table-head-text {
+  @apply py-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] border-b border-slate-50;
+}
+
+.table-row {
+  @apply transition-all duration-200;
+}
+
+.table-row:hover {
+  @apply bg-slate-50/50;
+}
+
+.table-cell {
+  @apply py-4 border-b border-slate-50 transition-colors;
+}
+
+.status-badge {
+  @apply text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tight inline-flex items-center justify-center min-w-[70px];
+}
+
+/* Specific button in the header */
+.header-action-btn {
+  @apply text-xs font-bold text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-xl transition-all active:scale-95;
+}

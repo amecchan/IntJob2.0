@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import logoImg from '../../assets/logo.jpg';
-import styles from './Navigation.module.css';
+import styles from './Navbar.module.css';
 
-const Navigation = ({ onLoginClick, onSignupClick }) => {
+const Navigation = ({ onLogin, onSignup }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -24,8 +24,8 @@ const Navigation = ({ onLoginClick, onSignupClick }) => {
           <nav className={`${styles.navLinks} ${isMenuOpen ? styles.active : ''}`}>
             <a href="#how" className={styles.navItem} onClick={toggleMenu}>How it works</a>
             <a href="#contact" className={styles.navItem} onClick={toggleMenu}>Contact</a>
-            <button className="btn btn-outline" onClick={onLoginClick}>Login</button>
-            <button className="btn btn-primary" onClick={onSignupClick}>Sign Up</button>
+            <button className="btn btn-outline" onClick={onLogin}>Login</button>
+            <button className="btn btn-primary" onClick={onSignup}>Sign Up</button>
           </nav>
         </div>
         {/* Overlay only shows when state is true */}
