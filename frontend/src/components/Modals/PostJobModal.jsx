@@ -90,6 +90,7 @@ const PostJobModal = ({ onClose, onSuccess, initialData }) => {
               <input 
                 required
                 className="modal-input"
+                placeholder='e.g Public Administration'
                 value={formData.title}
                 onChange={(e) => setFormData({...formData, title: e.target.value})}
               />
@@ -101,6 +102,7 @@ const PostJobModal = ({ onClose, onSuccess, initialData }) => {
                 <input 
                   required
                   className="modal-input"
+                  placeholder='e.g Makati City, PH'
                   value={formData.location}
                   onChange={(e) => setFormData({...formData, location: e.target.value})}
                 />
@@ -112,6 +114,7 @@ const PostJobModal = ({ onClose, onSuccess, initialData }) => {
                   required
                   type="number"
                   className="modal-input"
+                  placeholder='e.g 30000'
                   value={formData.salary_max}
                   onChange={(e) => setFormData({...formData, salary_max: e.target.value})}
                 />
@@ -124,6 +127,7 @@ const PostJobModal = ({ onClose, onSuccess, initialData }) => {
                 required
                 rows="3"
                 className="modal-textarea"
+                placeholder='e.g has a degree related to the job'
                 value={formData.qualifications}
                 onChange={(e) => setFormData({...formData, qualifications: e.target.value})}
               ></textarea>

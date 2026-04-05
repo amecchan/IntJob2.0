@@ -1,0 +1,343 @@
+/* src/styles/CompanyProfile.css */
+
+.intjob-profile-v2-container {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 40px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+/* 1. Header Layout */
+.profile-header-area {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 48px;
+}
+
+.profile-main-title {
+  font-size: 32px;
+  font-weight: 900;
+  color: #1e293b;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.profile-sub-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin: 8px 0 0 0;
+}
+
+/* 2. Premium Sync Button */
+.premium-sync-btn {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 16px;
+  font-weight: 900;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.2);
+}
+
+.premium-sync-btn:hover {
+  background: #4338ca;
+  transform: translateY(-2px);
+  box-shadow: 0 25px 30px -5px rgba(79, 70, 229, 0.3);
+}
+
+/* 3. The Master Grid Layout */
+.profile-master-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+/* 4. Card Aesthetics */
+.glass-card {
+  background: white;
+  border: 1px solid #f1f5f9;
+  border-radius: 32px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+/* Brand Card Styling */
+.brand-card {
+  padding: 40px;
+  text-align: center;
+}
+
+.logo-v2-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+}
+
+.logo-sq-preview {
+  width: 100%;
+  height: 100%;
+  background: #4f46e5;
+  border-radius: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  font-weight: 900;
+  color: white;
+}
+
+.logo-cam-btn {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  width: 44px;
+  height: 44px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  color: #64748b;
+}
+
+.brand-text-block h2 {
+  font-size: 24px;
+  font-weight: 900;
+  color: #1e293b;
+  margin: 24px 0 8px 0;
+}
+
+.verified-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dot-pulse {
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+}
+
+.verified-badge p {
+  color: #22c55e;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.website-link {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* 5. Main Form Card */
+.main-entry-card {
+  padding: 48px;
+  background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.section-heading {
+  font-size: 18px;
+  font-weight: 900;
+  color: #1e293b;
+  margin-bottom: 32px;
+}
+
+.input-row-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px 24px;
+}
+
+.input-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input-field-group.full-width {
+  grid-column: span 2;
+}
+
+.input-field-group label {
+  font-size: 11px;
+  font-weight: 900;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding-left: 4px;
+}
+
+.input-field-group input {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.input-field-group input:focus {
+  background: white;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.05);
+}
+
+/* Icons inside inputs */
+.with-icon-box {
+  position: relative;
+}
+
+.field-icon {
+  position: absolute;
+  left: 20px;
+  top: 45px;
+  color: #94a3b8;
+}
+
+.pad-icon {
+  padding-left: 52px !important;
+}
+
+.legal-top-border {
+  margin-top: 48px;
+  padding-top: 48px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.legal-notice {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  font-style: italic;
+  margin-top: 24px;
+}
+
+/* 1. Container for the stats */
+.intjob-profile-v2-wrapper .verification-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem; /* Space between the two blocks */
+}
+
+/* 2. Individual stat block */
+.intjob-profile-v2-wrapper .verification-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0;
+}
+
+/* 3. The small label (TIN Status / Permit Exp) */
+.intjob-profile-v2-wrapper .info-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* 4. The actual value text */
+.intjob-profile-v2-wrapper .info-value {
+  font-size: 14px;
+  font-weight: 900;
+  color: #1e293b;
+}
+
+/* 5. Special color for 'COMPLIANT' */
+.intjob-profile-v2-wrapper .status-success {
+  color: #4f46e5; /* Or use #22c55e for green */
+}
+
+/* Sidebar Fixes */
+/* Container for the small verification card */
+.verification-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  height: auto; /* Crucial: allows card to grow with content */
+  min-height: fit-content;
+  overflow: hidden; /* Clips any unintended spillover */
+}
+
+/* Vertical stack for the items */
+.verification-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Gives air between TIN and Permit info */
+  margin-top: 16px;
+}
+
+/* Individual grouping for Label + Value */
+.verification-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start; /* Ensures everything is left-aligned */
+}
+
+.info-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+
+.info-value {
+  font-size: 16px;
+  font-weight: 900;
+  color: #1e293b;
+  line-height: 1.2;
+}
+
+.status-success {
+  color: #22c55e; /* Matches the green in your screenshot */
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .profile-master-grid {
+    grid-template-columns: 1fr;
+  }
+  .brand-sidebar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+}

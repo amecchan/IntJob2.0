@@ -1,0 +1,128 @@
+/* --- JobLists.css --- */
+
+.job-lists-container {
+  padding: 120px 0;
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+.search-wrapper {
+  max-width: 800px; /* Wider search for the list view */
+  margin: 0 auto 60px auto;
+}
+
+/* Stack cards vertically instead of a grid */
+.jobs-list-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Horizontal List Card */
+.job-item-row {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 24px;
+  display: flex;
+  gap: 20px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.job-item-row:hover {
+  border-color: #2563eb;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  transform: scale(1.01);
+}
+
+.company-logo-square {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  border: 1px solid #f1f5f9;
+  object-fit: contain;
+  padding: 4px;
+}
+
+.job-content-main {
+  flex-grow: 1;
+}
+
+.job-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+}
+
+.job-row-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #02176d;
+}
+
+.job-row-title:hover {
+  text-decoration: underline;
+}
+
+.job-row-company {
+  font-weight: 600;
+  color: #2563eb;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+/* JobStreet-style Detail List */
+.job-details-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.job-description-snippet {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: #475569;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Limits to 2 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.job-row-footer {
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.posted-date {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.apply-btn-sm {
+  background: #2563eb;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}

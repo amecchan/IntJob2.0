@@ -2,53 +2,107 @@
 @import "tailwindcss";
 
 .sidebar-container {
-  @apply w-64 h-screen bg-[#2D3748] text-white flex flex-col sticky top-0 shadow-2xl;
+  @apply w-72 h-screen bg-[#10192C] flex flex-col border-r border-white/5 sticky top-0;
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
 }
 
-.sidebar-logo {
-  @apply p-8 text-2xl font-black tracking-tighter flex items-center gap-2;
+/* Brand Section */
+.sidebar-brand {
+  @apply p-8 flex items-center gap-3;
 }
 
-.sidebar-logo span {
-  @apply text-blue-400; /* The 'Job' part of IntJob */
+.brand-logo-square {
+  @apply w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20;
 }
 
+.logo-inner-dot {
+  @apply w-3 h-3 bg-white rounded-full animate-pulse;
+}
+
+.brand-title {
+  @apply text-white text-xl font-black tracking-tighter;
+}
+
+.brand-title span {
+  @apply text-indigo-400;
+}
+
+/* Nav Section */
 .sidebar-nav {
-  @apply flex-1 px-4 space-y-1 mt-2;
+  @apply flex-1 px-4 py-2 overflow-y-auto;
 }
 
-.sidebar-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  color: #94a3b8; /* Faded color for inactive tabs */
-  background: transparent;
-  border: none;
-  width: 100%;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border-left: 3px solid transparent; /* Hidden line by default */
+.nav-group-label {
+  @apply px-4 mb-4 text-[9px] font-black uppercase tracking-[0.3em] text-white/20;
 }
 
-/* 2. Hover effect (Temporary) */
-/* Hover state: Just a slight change in text brightness */
-.sidebar-link:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.03);
+.nav-items-stack {
+  @apply space-y-1;
 }
 
-.sidebar-link-active {
-  background: rgba(99, 102, 241, 0.1) !important; /* Very faint indigo */
-  color: #818cf8 !important; /* Bright Indigo text */
-  border-left: 3px solid #6366f1 !important; /* Blue indicator line */
-  font-weight: 700;
+/* Navigation Buttons */
+.nav-btn {
+  @apply w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 relative overflow-hidden;
+  @apply text-white/40 font-bold text-sm hover:bg-white/5 hover:text-white/80;
 }
 
-.sidebar-logout {
-  @apply w-full flex items-center gap-3 px-4 py-3 rounded-lg text-[13px] font-semibold text-red-400 hover:bg-red-500/10 transition-all mt-auto mb-6;
+.nav-icon {
+  @apply w-5 h-5 flex items-center justify-center transition-transform duration-300;
 }
 
-.sidebar-user-card {
-  @apply p-4 mx-4 mb-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 flex items-center gap-3;
+.nav-btn:hover .nav-icon {
+  @apply scale-110 text-indigo-400;
+}
+
+/* Active State */
+.nav-btn-active {
+  @apply bg-indigo-600/10 text-white shadow-inner;
+}
+
+.nav-btn-active .nav-icon {
+  @apply text-indigo-400;
+}
+
+.active-glow {
+  @apply absolute left-0 w-1 h-6 bg-indigo-500 rounded-r-full shadow-[2px_0_10px_rgba(99,102,241,0.5)];
+}
+
+.nav-divider {
+  @apply h-[1px] bg-white/5 my-6 mx-4;
+}
+
+/* Logout Styling */
+.logout-btn {
+  @apply hover:bg-red-500/10 hover:text-red-400;
+}
+
+/* Footer User Card */
+.sidebar-footer {
+  @apply p-6 bg-white/5 mt-auto border-t border-white/5;
+}
+
+.user-profile-widget {
+  @apply flex items-center gap-4 bg-[#1E293B] p-4 rounded-[1.5rem] border border-white/5 shadow-xl;
+}
+
+.user-avatar-circle {
+  @apply w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center 
+         text-sm font-black text-white shadow-lg shadow-indigo-500/20 uppercase;
+}
+
+.user-full-name {
+  @apply text-xs font-black text-white tracking-tight leading-none mb-1;
+}
+
+.user-role-badge {
+  @apply text-[9px] font-bold text-white/30 uppercase tracking-widest;
+}
+
+/* Custom Scrollbar for Sidebar */
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  @apply bg-white/5 rounded-full;
 }

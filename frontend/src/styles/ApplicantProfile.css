@@ -1,0 +1,131 @@
+/* ApplicantProfile.css */
+@import "tailwindcss";
+
+.profile-dashboard-inset {
+  @apply w-full min-h-screen p-6 md:p-10;
+  /* This margin-top ensures it sits below the blue nav if it's fixed */
+  margin-top: 20px; 
+}
+
+.profile-top-bar {
+  @apply flex justify-between items-center mb-10;
+}
+
+.profile-back-link {
+  @apply flex items-center gap-2 text-slate-400 hover:text-indigo-600 
+         font-black text-[10px] uppercase tracking-widest transition-all;
+}
+
+.profile-main-layout {
+  @apply grid grid-cols-1 xl:grid-cols-4 gap-8;
+}
+
+/* Primary Card (Takes 3 columns on desktop) */
+.profile-card-primary {
+  @apply xl:col-span-3 bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden;
+}
+
+.profile-card-banner {
+  @apply h-32 bg-gradient-to-r from-indigo-600 to-indigo-400;
+}
+
+.profile-card-body {
+  @apply px-10 pb-12;
+}
+
+/* Avatar & Identity */
+.profile-avatar-stack {
+  @apply flex items-end gap-6 -mt-12 mb-8;
+}
+
+.profile-avatar-large {
+  @apply w-28 h-28 bg-white rounded-3xl p-1 shadow-xl flex items-center justify-center 
+         text-2xl font-black text-indigo-600 border-4 border-white;
+  background-color: #f8fafc;
+}
+
+.profile-display-name {
+  @apply text-3xl font-black text-slate-800 tracking-tight;
+}
+
+.profile-display-role {
+  @apply text-indigo-500 font-bold;
+}
+
+.profile-id-tag {
+  @apply inline-block mt-2 px-2 py-1 bg-slate-50 text-slate-400 text-[9px] font-black rounded border border-slate-100;
+}
+
+/* Layout Grid */
+.profile-info-grid {
+  @apply space-y-10 mt-10;
+}
+
+.profile-label {
+  @apply text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 block;
+}
+
+.profile-text-content {
+  @apply text-slate-600 leading-relaxed font-medium;
+}
+
+/* Skills */
+.profile-skill-wrap {
+  @apply flex flex-wrap gap-2;
+}
+
+.profile-skill-chip {
+  @apply px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold border border-indigo-100;
+}
+
+/* Sidebar Styling */
+.profile-card-sidebar {
+  @apply xl:col-span-1 space-y-6;
+}
+
+.profile-contact-box {
+  @apply bg-slate-50 rounded-[2rem] p-8 border border-slate-100;
+}
+
+.contact-item {
+  @apply flex items-center gap-3 text-slate-600 font-bold text-xs mb-4 last:mb-0;
+}
+
+.contact-item svg {
+  @apply text-indigo-400;
+}
+
+/* Buttons */
+.profile-btn-primary {
+  @apply flex items-center gap-2 px-6 py-3.5 bg-indigo-600 text-white rounded-2xl 
+         font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-100;
+}
+
+.profile-btn-secondary {
+  @apply flex items-center gap-2 px-6 py-3.5 bg-white border border-slate-100 
+         text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest;
+}
+
+.profile-quick-actions {
+  @apply flex gap-3;
+}
+
+.profile-section-divider {
+  @apply h-[1px] w-full bg-slate-50 mt-8;
+}
+
+.profile-stat-blocks {
+  @apply grid grid-cols-2 gap-4;
+}
+
+.stat-mini-card {
+  @apply p-5 bg-white border border-slate-100 rounded-2xl text-center;
+}
+
+.stat-mini-label {
+  @apply block text-[8px] font-black text-slate-300 uppercase tracking-widest mb-1;
+}
+
+.stat-mini-value {
+  @apply block text-xs font-black text-slate-700;
+}

@@ -1,0 +1,106 @@
+/* src/styles/DeleteModal.css */
+
+.delete-modal-container {
+  background: white;
+  width: 100%;
+  max-width: 440px; /* Standard JobStreet-style alert width */
+  border-radius: 2.5rem;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.delete-modal-content {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centers the icon and text */
+  text-align: center;
+}
+
+.warning-icon-wrapper {
+  background-color: #fee2e2; /* light red */
+  padding: 20px;
+  border-radius: 50%;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #0f172a;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+
+.delete-description {
+  font-size: 0.95rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.target-job-name {
+  color: #ef4444; /* bright red */
+  font-weight: 800;
+}
+
+/* Button Stack */
+.delete-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn-confirm-delete {
+  width: 100%;
+  background-color: #ef4444;
+  color: white;
+  padding: 16px;
+  border-radius: 1.25rem;
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+  box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.2);
+}
+
+.btn-confirm-delete:hover:not(:disabled) {
+  background-color: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 15px 20px -3px rgba(239, 68, 68, 0.3);
+}
+
+.btn-cancel-delete {
+  width: 100%;
+  background-color: #f8fafc;
+  color: #64748b;
+  padding: 16px;
+  border-radius: 1.25rem;
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-cancel-delete:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.btn-confirm-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

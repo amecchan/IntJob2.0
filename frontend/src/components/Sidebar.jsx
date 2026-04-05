@@ -3,14 +3,14 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/sidebar.css'; 
 import { 
-  HomeIcon, 
-  BackpackIcon, 
+  DashboardIcon, 
+  EyeOpenIcon, 
   FileTextIcon, 
-  PersonIcon,
   EnvelopeClosedIcon,
   GearIcon,
   ExitIcon,
-  ComponentInstanceIcon // Using this for Company Profile
+  ComponentInstanceIcon,
+  ChevronRightIcon
 } from '@radix-ui/react-icons';
 
 const Sidebar = () => {
@@ -20,60 +20,105 @@ const Sidebar = () => {
 
   if (!user) return null;
 
-  const menuItems = [
-    { label: 'Dashboard', icon: <HomeIcon />, path: '/employer/dashboard' },
-    { label: 'View Applicants', icon: <BackpackIcon />, path: '/employer/dashboard/view-applicants' },
-    { label: 'Job Posts', icon: <FileTextIcon />, path: '/employer/dashboard/jobs' },
-    { label: 'Applicants', icon: <PersonIcon />, path: '/employer/dashboard/candidates' },
-    { label: 'Messages', icon: <EnvelopeClosedIcon />, path: '/employer/dashboard/messages' },
-    { label: 'Company Profile', icon: <ComponentInstanceIcon />, path: '/employer/dashboard/profile' },
-    { label: 'Settings', icon: <GearIcon />, path: '/employer/dashboard/settings' },
-  ];
-
-  // Helper to check if a link is active, including dynamic sub-routes
-  const isActive = (path) => {
-  if (path === '/dashboard') {
-    // Only highlight Dashboard if the URL is EXACTLY /dashboard
-    return location.pathname === '/dashboard';
-  }
-  // For others like /dashboard/jobs, highlight if it starts with that path
+  // Improved isActive to handle dynamic sub-routes
+  // This ensures the "View Applicants" tab stays active when viewing a specific profile
+  const isTabActive = (path) => {
+    if (path === '/employer/dashboard') {
+      return location.pathname === path;
+    }
     return location.pathname.startsWith(path);
   };
 
+  const menuItems = [
+    { 
+      label: 'Dashboard', 
+      icon: <DashboardIcon />, 
+      path: '/employer/dashboard' 
+    },
+    { 
+      label: 'View Applicants', 
+      icon: <EyeOpenIcon />, 
+      path: '/employer/dashboard/view-applicants' 
+    },
+    { 
+      label: 'Job Posts', 
+      icon: <FileTextIcon />, 
+      path: '/employer/dashboard/jobs' 
+    },
+    { 
+      label: 'Messages', 
+      icon: <EnvelopeClosedIcon />, 
+      path: '/employer/dashboard/messages' 
+    },
+    { 
+      label: 'Company Profile', 
+      icon: <ComponentInstanceIcon />, 
+      path: '/employer/dashboard/profile' 
+    },
+    { 
+      label: 'Settings', 
+      icon: <GearIcon />, 
+      path: '/employer/dashboard/settings' 
+    },
+  ];
+
   return (
     <aside className="sidebar-container">
-      <div className="sidebar-logo">
-        Int<span>Job</span>
+      {/* Brand Section */}
+      <div className="sidebar-brand">
+        <div className="brand-logo-square">
+          <div className="logo-inner-dot" />
+        </div>
+        <h1 className="brand-title">Int<span>Job</span></h1>
       </div>
 
+      {/* Navigation Menu */}
       <nav className="sidebar-nav">
-        {menuItems.map((item) => (
-          <button
-            key={item.label}
-            onClick={() => navigate(item.path)}
-            className={`sidebar-link ${isActive(item.path) ? 'sidebar-link-active' : ''}`}
-          >
-            {React.cloneElement(item.icon, { className: "w-4 h-4" })}
-            <span className="sidebar-label">{item.label}</span>
-          </button>
-        ))}
+        <div className="nav-group-label">Recruitment System</div>
         
-        <div className="sidebar-divider" />
+        <div className="nav-items-stack">
+          {menuItems.map((item) => {
+            const active = isTabActive(item.path);
+            return (
+              <button
+                key={item.label}
+                onClick={() => navigate(item.path)}
+                className={`nav-btn ${active ? 'nav-btn-active' : ''}`}
+              >
+                <span className="nav-icon">{item.icon}</span>
+                <span className="nav-text">{item.label}</span>
+                {active && (
+                  <>
+                    <div className="active-glow" />
+                    <ChevronRightIcon className="ml-auto w-3 h-3 opacity-50" />
+                  </>
+                )}
+              </button>
+            );
+          })}
+        </div>
 
-        <button onClick={logout} className="sidebar-link text-red-400 hover:bg-red-50/10 hover:text-red-400 mt-auto">
-          <ExitIcon className="w-4 h-4" />
-          <span className="sidebar-label">Logout</span>
+        <div className="nav-divider" />
+
+        <div className="nav-group-label">Account</div>
+        <button onClick={logout} className="nav-btn logout-btn group">
+          <span className="nav-icon group-hover:text-red-500 transition-colors">
+            <ExitIcon />
+          </span>
+          <span className="nav-text group-hover:text-red-600 transition-colors">Sign Out</span>
         </button>
       </nav>
 
       {/* User Card */}
-      <div className="sidebar-user-card">
-        <div className="user-avatar-mini">
-          {getInitials(user.name || "User")}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="user-name-text">{user.name}</p>
-          <p className="user-role-text">{user.role}</p>
+      <div className="sidebar-footer">
+        <div className="user-profile-widget">
+          <div className="user-avatar-circle">
+             {getInitials ? getInitials(user.name) : user.name?.charAt(0) || "E"}
+          </div>
+          <div className="user-meta">
+            <p className="user-full-name">{user.name || "Employer User"}</p>
+            <p className="user-role-badge">Premium {user.role || 'Employer'}</p>
+          </div>
         </div>
       </div>
     </aside>
