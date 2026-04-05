@@ -70,7 +70,6 @@ const CompanyProfile = () => {
           </div>
 
           {/* FIXED VERIFICATION SECTION */}
-          {/* FIXED VERIFICATION SECTION */}
             <div className="glass-card verification-card">
                 <h3 className="micro-label">Verification Details</h3>
             

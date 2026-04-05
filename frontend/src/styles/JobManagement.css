@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 .job-management-wrapper {
-  @apply w-full max-w-[1600px] mx-auto;
+  @apply w-full max-w-300 mx-auto;
 }
 
 .job-search-input {

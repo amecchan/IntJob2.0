@@ -1,3 +1,4 @@
+{/* Job Posts */}
 import React from 'react';
 import JobTable from '../../components/Dashboard/JobTable';
 import { MagnifyingGlassIcon, MixerHorizontalIcon, ArchiveIcon } from '@radix-ui/react-icons';
