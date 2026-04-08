@@ -6,11 +6,11 @@ import '../../styles/Modal.css';
 import Toast from '../ui/Toast';
 
 const PostJobModal = ({ onClose, onSuccess, initialData }) => {
-  const { token } = useAuth();
+  const { user } = useAuth(); // Change token to user
   const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
   
-  const isEditMode = !!initialData; // true if we're editing
+  const isEditMode = !!initialData;
 
   const [formData, setFormData] = useState({
     title: '',
@@ -20,7 +20,6 @@ const PostJobModal = ({ onClose, onSuccess, initialData }) => {
     description: ''
   });
 
-  // Sync formData with initialData when editing
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -41,13 +40,13 @@ const PostJobModal = ({ onClose, onSuccess, initialData }) => {
       const submissionData = {
         ...formData,
         salary_max: parseFloat(formData.salary_max) || 0,
-        description: formData.description || `Hiring for ${formData.title}`
       };
 
       if (isEditMode) {
-        await updateJob(initialData.id, submissionData, token);
+        await updateJob(initialData.id, submissionData);
       } else {
-        await createJob(submissionData, token);
+        // FIX: Pass user.uid here!
+        await createJob(submissionData, user.uid);
       }
 
       setShowToast(true);
@@ -84,13 +83,13 @@ const PostJobModal = ({ onClose, onSuccess, initialData }) => {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="modal-body">
+          <form onSubmit={handleSubmit} className="modal-body max-h-[70vh] overflow-y-auto pr-2">
             <div className="modal-input-group">
               <label>Job Title</label>
               <input 
                 required
                 className="modal-input"
-                placeholder='e.g Public Administration'
+                placeholder='e.g. Frontend Developer'
                 value={formData.title}
                 onChange={(e) => setFormData({...formData, title: e.target.value})}
               />
@@ -102,7 +101,7 @@ const PostJobModal = ({ onClose, onSuccess, initialData }) => {
                 <input 
                   required
                   className="modal-input"
-                  placeholder='e.g Makati City, PH'
+                  placeholder='e.g. Makati City, PH'
                   value={formData.location}
                   onChange={(e) => setFormData({...formData, location: e.target.value})}
                 />
@@ -114,11 +113,23 @@ const PostJobModal = ({ onClose, onSuccess, initialData }) => {
                   required
                   type="number"
                   className="modal-input"
-                  placeholder='e.g 30000'
+                  placeholder='30000'
                   value={formData.salary_max}
                   onChange={(e) => setFormData({...formData, salary_max: e.target.value})}
                 />
               </div>
+            </div>
+
+            <div className="modal-input-group">
+              <label>Full Job Description</label>
+              <textarea 
+                required
+                rows="4"
+                className="modal-textarea"
+                placeholder='Describe the role and day-to-day tasks...'
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+              ></textarea>
             </div>
 
             <div className="modal-input-group">
@@ -127,7 +138,7 @@ const PostJobModal = ({ onClose, onSuccess, initialData }) => {
                 required
                 rows="3"
                 className="modal-textarea"
-                placeholder='e.g has a degree related to the job'
+                placeholder='List required skills or education...'
                 value={formData.qualifications}
                 onChange={(e) => setFormData({...formData, qualifications: e.target.value})}
               ></textarea>

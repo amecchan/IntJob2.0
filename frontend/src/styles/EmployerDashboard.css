@@ -1,0 +1,83 @@
+/* src/styles/EmployerDashboard.css */
+@import "tailwindcss";
+
+.dashboard-container {
+  @apply flex flex-col gap-10 w-full pb-20;
+}
+
+/* Header & The New Brand Pill */
+.db-welcome-section {
+  @apply space-y-2;
+}
+
+.brand-pill-wrapper {
+  @apply mb-4;
+}
+
+.brand-pill {
+  @apply inline-flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-1.5 
+         rounded-full text-[11px] font-bold uppercase tracking-widest;
+}
+
+.brand-icon {
+  @apply w-3.5 h-3.5;
+}
+
+.welcome-title {
+  @apply text-xl font-black text-slate-900 tracking-tighter;
+}
+
+.welcome-subtitle {
+  @apply text-slate-400 text-sm font-medium;
+}
+
+/* Stats Grid */
+.db-stats-section {
+  @apply w-full;
+}
+
+.stats-grid-wrapper {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-6;
+}
+
+/* Table Section Styling */
+.db-table-section {
+  @apply flex flex-col gap-6;
+}
+
+.table-header-row {
+  @apply flex items-center justify-between;
+}
+
+.header-label {
+  @apply flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em];
+}
+
+.accent-line {
+  @apply w-10 h-[2px] bg-indigo-600;
+}
+
+.new-job-btn-top {
+  @apply flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-xl 
+         text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all;
+}
+
+.main-table-card {
+  @apply bg-white border border-slate-100 rounded-[2.5rem] shadow-xl 
+         shadow-slate-200/30 overflow-hidden w-full;
+}
+
+/* Ensure JobTable headers aren't cramped */
+.main-table-card :where(th) {
+  @apply px-20 py-6;
+}
+
+.main-table-card :where(td) {
+  @apply px-20 py-6;
+}
+
+/* Stat Cards consistency */
+.stat-card-modern {
+  @apply h-auto min-h-[120px] bg-white border border-slate-100 p-6 rounded-[2rem] 
+         flex items-center gap-5 shadow-sm transition-transform hover:-translate-y-1;
+}

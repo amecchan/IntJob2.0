@@ -100,6 +100,13 @@
   color: white;
 }
 
+.logo-sq-preview.object-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 32px;
+}
+
 .logo-cam-btn {
   position: absolute;
   bottom: -10px;
@@ -115,6 +122,25 @@
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   color: #64748b;
+}
+
+.upload-placeholder-btn {
+  font-size: 12px;
+  font-weight: 800;
+  color: #4f46e5;
+  background: #f5f3ff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-block;
+  margin-top: 4px;
+  border: 1px dashed #c4b5fd;
+  transition: all 0.2s;
+}
+
+.upload-placeholder-btn:hover {
+  background: #ede9fe;
+  border-style: solid;
 }
 
 .brand-text-block h2 {

@@ -1,31 +1,79 @@
 /* src/styles/JobManagement.css */
 @import "tailwindcss";
 
-.job-management-wrapper {
-  @apply w-full max-w-300 mx-auto;
+.job-mgmt-flow {
+  @apply flex flex-col gap-8 w-full;
 }
 
-.job-search-input {
-  @apply w-full bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-4 
-         text-sm text-slate-600 placeholder:text-slate-300 outline-none 
-         focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 transition-all;
+/* Header Alignment */
+.mgmt-header {
+  @apply flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6;
 }
 
-.filter-btn {
-  @apply flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 
-         text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest
-         hover:bg-slate-50 transition-all active:scale-95 shadow-sm;
+.mgmt-badge {
+  @apply flex items-center gap-2 bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full 
+         text-[10px] font-black uppercase tracking-widest mb-2 w-fit;
 }
 
-.mini-stat-card {
-  @apply bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm 
-         flex flex-col items-center justify-center text-center transition-all hover:shadow-md;
+.mgmt-title {
+  @apply text-4xl font-black text-slate-900 tracking-tighter;
 }
 
-.mini-label {
-  @apply text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1;
+.header-right {
+  @apply flex items-center gap-3 w-full lg:w-auto;
 }
 
-.mini-value {
-  @apply text-2xl font-black tracking-tight;
+/* Search Input */
+.mgmt-search-wrapper {
+  @apply relative flex-1 lg:w-72;
+}
+
+.s-icon {
+  @apply absolute left-4 top-1/2 -translate-y-1/2 text-slate-400;
+}
+
+.mgmt-search-input {
+  @apply w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 
+         text-sm outline-none focus:ring-4 focus:ring-indigo-50 transition-all shadow-sm;
+}
+
+/* Primary Action Button */
+.mgmt-primary-btn {
+  @apply flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-xl 
+         text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all active:scale-95;
+}
+
+/* Stats Grid - Matching ViewApplicants */
+.mgmt-stats-grid {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-4;
+}
+
+.mgmt-stat-card {
+  @apply bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col;
+}
+
+.mgmt-stat-card .v {
+  @apply text-3xl font-black text-slate-900;
+}
+
+.mgmt-stat-card .l {
+  @apply text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1;
+}
+
+/* Table Card */
+.mgmt-table-wrapper {
+  @apply bg-white border border-slate-100 rounded-[2.5rem] shadow-xl shadow-slate-200/30 overflow-hidden;
+}
+
+/* Ensure the inner table from JobTable looks correct */
+.mgmt-table-wrapper :where(table) {
+  @apply w-full text-left;
+}
+
+.mgmt-table-wrapper :where(th) {
+  @apply bg-slate-50/50 px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100;
+}
+
+.mgmt-table-wrapper :where(td) {
+  @apply px-8 py-6 border-b border-slate-50;
 }

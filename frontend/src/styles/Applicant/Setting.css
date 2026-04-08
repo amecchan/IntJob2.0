@@ -1,0 +1,231 @@
+/* ==================== SETTINGS VIEW CONTAINER ==================== */
+.settings-view-wrapper {
+  padding: 30px;
+  background: transparent; 
+  min-height: 100%;
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================== SETTINGS HEADER ==================== */
+.settings-header {
+  margin-bottom: 30px;
+  border-bottom: 1px solid #e2e8f0; 
+  padding-bottom: 15px;
+}
+
+.settings-header h2 {
+  font-size: 24px;
+  color: #0F2573; 
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ==================== SETTINGS GRID ==================== */
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.settings-card {
+  background: #ffffff; 
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0; 
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(15, 37, 115, 0.05); 
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.settings-card.clickable {
+  cursor: pointer;
+}
+
+.settings-card:hover {
+  transform: translateY(-5px);
+  background: #f8fafc; 
+  border-color: #266CA9;
+  box-shadow: 0 8px 20px rgba(15, 37, 115, 0.1);
+}
+
+.card-icon-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: #266CA9; 
+}
+
+.settings-card h3 {
+  font-size: 18px;
+  color: #0F2573;
+  margin: 0;
+}
+
+.settings-card p {
+  color: #64748b; 
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+/* ==================== VIEW BUTTON ==================== */
+.settings-view-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #266CA9;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.3s;
+  width: fit-content;
+}
+
+.settings-card:hover .settings-view-btn {
+  background: #266CA9;
+  color: white;
+  border-color: #266CA9;
+}
+
+/* ==================== ACCOUNT SETTINGS PAGE ==================== */
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  margin-bottom: 20px;
+  font-weight: 600;
+  padding: 0;
+  transition: 0.2s;
+}
+
+.back-btn:hover {
+  color: #0F2573;
+}
+
+.account-details-container {
+  max-width: 600px;
+  background: white;
+  padding: 35px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 30px rgba(15, 37, 115, 0.05);
+}
+
+.acc-header {
+  margin-bottom: 25px;
+}
+
+.acc-header h2 {
+  color: #0F2573;
+  margin-bottom: 5px;
+}
+
+.muted {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.edit-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-group label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-group input {
+  padding: 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #0F2573;
+  transition: 0.2s;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #266CA9;
+  background: #f0f7ff;
+}
+
+.acc-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.btn-save-large {
+  background: #0F2573;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: 0.3s;
+}
+
+.btn-save-large:hover {
+  background: #1a3a8a;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(15, 37, 115, 0.2);
+}
+
+.btn-cancel {
+  background: #f1f5f9;
+  color: #475569;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 600px) {
+  .settings-view-wrapper {
+    padding: 15px;
+  }
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+  .acc-actions {
+    flex-direction: column;
+  }
+  .btn-save-large, .btn-cancel {
+    width: 100%;
+  }
+}

@@ -2,32 +2,36 @@
 @import "tailwindcss";
 
 .layout-wrapper {
-  @apply flex min-h-screen bg-[#F8FAFC] font-sans;
+  /* Ensure the layout fills the viewport without pushing content out */
+  @apply flex h-screen w-screen bg-[#F8FAFC] overflow-hidden;
 }
 
 .main-content-wrapper {
-  @apply flex-1 flex flex-col relative h-screen overflow-hidden;
+  /* flex-col is vital here to stack the Header and Scroll area vertically */
+  @apply flex-1 flex flex-col min-w-0 relative; 
 }
 
-/* This is now a simple, solid header bar */
 .header-bg-area {
-  @apply bg-gradient-to-r from-indigo-600 to-blue-600 py-6 shadow-md z-20; 
+  /* Changed from py-3 to a specific height or padding to prevent collapsing */
+  @apply bg-white border-b border-slate-100 py-4 px-8 z-30 shadow-sm; 
 }
 
 .scrollable-area {
-  @apply flex-1 overflow-y-auto bg-[#F8FAFC];
+  /* This area takes up all remaining space and handles its own scrolling */
+  @apply flex-1 overflow-y-auto overflow-x-hidden;
   scroll-behavior: smooth;
 }
 
-/* NO negative margins here. Content just flows naturally. */
-.content-container {
-  @apply max-w-7xl mx-auto w-full px-8 md:px-12 py-10;
+/* The actual "Inner" container that holds your Dashboard, Job Management, etc. */
+.content-float-up {
+  @apply max-w-7xl mx-auto w-full p-6 md:p-10;
 }
 
+/* Custom Scrollbar for a cleaner look */
 .scrollable-area::-webkit-scrollbar {
   width: 6px;
 }
 
 .scrollable-area::-webkit-scrollbar-thumb {
-  @apply bg-slate-200 rounded-full hover:bg-slate-300;
+  @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
 }

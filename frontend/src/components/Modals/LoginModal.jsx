@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { EyeOpenIcon, EyeNoneIcon, Cross2Icon, LockClosedIcon } from '@radix-ui/react-icons';
-import { useAuth } from '../../contexts/AuthContext';
+import { auth, db } from '../../services/firebase'; // Path to your firebase config
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
-const LoginModal = ({ isOpen, onClose, showPassword, setShowPassword, onForgotClick, onSwitchToSignup, onLoginSuccess }) => {
-  const { login } = useAuth(); // <--- 1. Add this hook
+const LoginModal = ({ isOpen, onClose, onForgotClick, onSwitchToSignup, onLoginSuccess }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -12,7 +14,7 @@ const LoginModal = ({ isOpen, onClose, showPassword, setShowPassword, onForgotCl
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (error) setError(""); // Clear error when user types
+    if (error) setError(""); 
   };
 
   const handleSubmit = async (e) => {
@@ -21,55 +23,68 @@ const LoginModal = ({ isOpen, onClose, showPassword, setShowPassword, onForgotCl
     setError("");
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/token/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: formData.email, 
-          password: formData.password
-        }),
-      });
+      // 1. Firebase Authentication
+      const userCredential = await signInWithEmailAndPassword(
+        auth, 
+        formData.email, 
+        formData.password
+      );
+      const user = userCredential.user;
 
-      const data = await response.json();
-
-      if (response.ok) {
-        // 1. Keep these for persistent storage (recovery after refresh)
-        localStorage.setItem("access_token", data.access);
-        localStorage.setItem("refresh_token", data.refresh);
-    
-        const userData = {
-            name: data.full_name,
-            role: data.role
-        };
-
-        // 2. UPDATED: Pass both userData AND the access token!
-        login(userData, data.access); 
+      // 2. Fetch User Role from Firestore
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const role = userData.role?.toLowerCase() || 'applicant';
         
-        onLoginSuccess(data.role); 
+        // 3. Success!
+        onLoginSuccess(role); 
       } else {
-        setError(data.detail || "Invalid email or password.");
+        setError("User profile not found in database.");
       }
-    } catch (error) {
-      setError("Could not connect to the server.");
+    } catch (err) {
+      console.error(err);
+      // Friendly error messages for common Firebase codes
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        setError("Invalid email or password.");
+      } else {
+        setError("An error occurred during login. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const styles = {
-    // Removed onClick dismissal to match SignupModal
     overlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px', fontFamily: "'Poppins', sans-serif" },
     content: { backgroundColor: 'white', padding: '40px', borderRadius: '16px', width: '100%', maxWidth: '400px', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' },
     header: { fontSize: '26px', fontWeight: 'bold', marginBottom: '8px', color: '#111', textAlign: 'center' },
     subHeader: { fontSize: '14px', color: '#666', textAlign: 'center', marginBottom: '25px' },
     formGroup: { marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' },
-    input: { width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', transition: 'border-color 0.2s', fontSize: '14px' },
-    button: { width: '100%', padding: '14px', backgroundColor: '#0051d3', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '10px', transition: 'background-color 0.2s' },
+    input: { width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', fontSize: '14px' },
+    button: { width: '100%', padding: '14px', backgroundColor: '#0051d3', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '10px' },
     errorMsg: { backgroundColor: '#fef2f2', color: '#dc2626', padding: '10px', borderRadius: '6px', fontSize: '13px', marginBottom: '15px', border: '1px solid #fee2e2', textAlign: 'center' }
   };
 
   return (
     <div style={styles.overlay}>
+      {/* CSS to hide browser-default password eye */}
+      <style>
+        {`
+          input::-ms-reveal,
+          input::-ms-clear {
+            display: none;
+          }
+          input::-webkit-contacts-auto-fill-button, 
+          input::-webkit-credentials-auto-fill-button {
+            visibility: hidden;
+            display: none !important;
+            pointer-events: none;
+          }
+        `}
+      </style>
+
       <div style={styles.content} onClick={(e) => e.stopPropagation()}>
         <button 
           style={{ position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }} 
@@ -85,7 +100,7 @@ const LoginModal = ({ isOpen, onClose, showPassword, setShowPassword, onForgotCl
         </div>
 
         <h2 style={styles.header}>Welcome Back</h2>
-        <p style={styles.subHeader}>Please enter your details to log in.</p>
+        <p style={styles.subHeader}>Sign in to your IntJob account.</p>
         
         {error && <div style={styles.errorMsg}>{error}</div>}
 

@@ -1,0 +1,271 @@
+/* --- Layout Wrapper --- */
+.status-view-wrapper {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background: transparent; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.status-container {
+  width: 100%;
+  max-width: 1000px;
+}
+
+.status-main-title {
+  color: #0F2573;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  align-self: flex-start;
+}
+
+/* --- The Card (Accordion Style) --- */
+.status-card {
+  width: 100%;
+  background: #ffffff; 
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 12px rgba(15, 37, 115, 0.05);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.status-card.expanded {
+  border-color: #ADE1FB;
+  box-shadow: 0 8px 24px rgba(15, 37, 115, 0.1);
+}
+
+/* --- Clickable Summary Header --- */
+.status-header-summary {
+  padding: 20px;
+  cursor: pointer;
+  background: #ffffff;
+  transition: background 0.2s;
+  position: relative;
+}
+
+.status-header-summary:hover {
+  background: #f8fafd;
+}
+
+.info-header-grid {
+  display: grid;
+  /* Adjusted for 5 columns (Name, Position, Status, ID, Date) + Arrow */
+  grid-template-columns: 1fr 1.5fr 1fr 1fr 1fr 40px;
+  gap: 15px;
+  align-items: center;
+}
+
+.header-box span { 
+  font-size: 0.7rem; 
+  color: #64748b; 
+  display: block; 
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.header-box p { 
+  color: #0F2573; 
+  font-weight: 600; 
+  font-size: 0.95rem; 
+  margin: 4px 0 0 0; 
+}
+
+.highlight-text {
+  color: #266CA9 !important;
+}
+
+.header-icon {
+  display: flex;
+  justify-content: flex-end;
+  color: #94a3b8;
+}
+
+/* --- Status Pills (Para sa Summary at Details) --- */
+.status-pill { 
+  display: inline-block;
+  padding: 4px 12px; 
+  border-radius: 20px; 
+  font-weight: 700; 
+  font-size: 0.75rem; 
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* Dynamic Colors for Status */
+.status-pill.under-review { 
+  background: rgba(38, 108, 169, 0.15); 
+  color: #266CA9; 
+}
+
+.status-pill.pending { 
+  background: rgba(100, 116, 139, 0.15); 
+  color: #64748b; 
+}
+
+.status-pill.hired, .status-pill.accepted { 
+  background: rgba(16, 185, 129, 0.15); 
+  color: #10b981; 
+}
+
+.status-pill.rejected {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+/* --- Mini Progress Line (Always Visible) --- */
+.mini-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: #f1f5f9;
+  border-radius: 2px;
+  margin-top: 15px;
+  overflow: hidden;
+}
+
+.progress-fill { 
+  height: 100%; 
+  background: #266CA9; 
+  border-radius: 10px; 
+  transition: width 0.5s ease;
+}
+
+/* --- Expanded Content --- */
+.status-details-content {
+  padding: 0 20px 25px 20px;
+  border-top: 1px solid #f1f5f9;
+  background: #fff;
+}
+
+.status-progress-block { padding: 20px 0; }
+
+.progress-subtext {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 8px;
+}
+
+/* --- Timeline Grid --- */
+.timeline-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.timeline-box {
+  background: #f8fafd;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+/* --- Details Stack --- */
+.details-stack { display: flex; flex-direction: column; gap: 15px; }
+
+.section-block { 
+  background: #ffffff;
+  border: 1px solid #f1f5f9; 
+  border-radius: 8px; 
+  padding: 15px; 
+}
+
+.section-block h4 { 
+  color: #266CA9; 
+  margin-bottom: 8px; 
+  font-size: 0.9rem; 
+  font-weight: 700;
+}
+
+.remarks-text {
+  color: #475569;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* --- Footer Actions --- */
+.action-footer { 
+  display: flex; 
+  justify-content: flex-end; 
+  gap: 12px; 
+  margin-top: 25px; 
+}
+
+.btn-withdraw, .btn-update {
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-withdraw {
+  background: #fff;
+  border: 1px solid #fca5a5;
+  color: #ef4444;
+}
+
+.btn-withdraw:hover {
+  background: #fef2f2;
+}
+
+.btn-update {
+  background: #0F2573;
+  border: none;
+  color: #fff;
+}
+
+.btn-update:hover {
+  background: #1a3a9e;
+}
+
+/* --- RESPONSIVENESS --- */
+
+@media (max-width: 1024px) {
+  .info-header-grid {
+    /* Summary shows Name, Position, and Status only on medium screens */
+    grid-template-columns: 1fr 1.2fr 0.8fr 40px; 
+    gap: 10px;
+  }
+  .hide-mobile { display: none; }
+}
+
+@media (max-width: 600px) {
+  .status-view-wrapper { padding: 10px; }
+
+  .info-header-grid {
+    /* Stacked layout for mobile */
+    grid-template-columns: 1fr 30px; 
+    gap: 5px;
+  }
+
+  .header-box {
+    grid-column: 1 / 2; 
+    padding: 5px 0;
+  }
+
+  /* Status Pill looks better as a small tag next to the position on mobile */
+  .status-summary-box {
+    margin-top: 5px;
+  }
+
+  .timeline-grid {
+    grid-template-columns: 1fr; 
+  }
+
+  .action-footer {
+    flex-direction: column; 
+    gap: 10px;
+  }
+
+  .btn-withdraw, .btn-update { 
+    width: 100%; 
+    padding: 12px; 
+  }
+}

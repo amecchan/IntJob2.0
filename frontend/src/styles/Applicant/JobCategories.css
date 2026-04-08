@@ -1,0 +1,107 @@
+/* === Main Wrapper for the Split Layout === */
+.job-categories-wrapper {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+/* === Left Side: Categories === */
+.job-categories-content {
+  flex: 2; /* Takes up more space on desktop */
+  width: 100%;
+}
+
+.job-container {
+  display: grid;
+  /* Updated minmax to 220px to fit better in the split view */
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+  padding-bottom: 40px;
+}
+
+/* === Right Side: Results Panel === */
+.results-panel {
+  flex: 0.8;
+  min-width: 320px;
+  position: sticky;
+  top: 90px; /* Adjusted to stay below your Sticky Topbar */
+  align-self: start;
+  z-index: 50;
+}
+
+/* === Job Section Cards === */
+.job-section-card {
+  background: #ffffff;
+  padding: 22px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  height: fit-content;
+  box-shadow: 0 4px 12px rgba(15, 37, 115, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.job-section-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(15, 37, 115, 0.1);
+  border-color: #ADE1FB;
+}
+
+.job-section-card h2 { 
+  color: #266CA9; 
+  font-size: 1.1rem; 
+  margin-bottom: 18px; 
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 10px;
+  font-weight: 700;
+  position: sticky;
+  top: -1px;
+  background: #fff;
+}
+
+/* === Responsive Media Queries === */
+
+/* 1. TABLET & SMALL LAPTOPS (Under 1024px) */
+@media (max-width: 1024px) {
+  .job-categories-wrapper {
+    flex-direction: column; /* Stacks Results Panel below Categories */
+    padding: 15px;
+  }
+
+  .results-panel {
+    position: relative; /* Removes sticky when stacked */
+    top: 0;
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .job-container {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
+/* 2. MOBILE PHONES (Under 600px) */
+@media (max-width: 600px) {
+  .job-container {
+    grid-template-columns: 1fr; /* One column only on phones */
+  }
+
+  .job-section-card {
+    padding: 15px;
+  }
+
+  .job-categories-wrapper {
+    padding: 10px;
+    gap: 15px;
+  }
+
+  /* Make buttons easier to tap on mobile */
+  button {
+    min-height: 44px; 
+  }
+}
+
+/* Global Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}

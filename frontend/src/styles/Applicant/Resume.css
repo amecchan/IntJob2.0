@@ -1,0 +1,498 @@
+/* --- PAGE HEADER (OUTSIDE) --- */
+.page-main-header {
+  width: 100%;
+  max-width: 900px;
+  margin-bottom: 25px;
+  padding: 20px 0;
+  text-align: left;
+}
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.page-main-header h1 {
+  color: #0F2573;
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.page-main-header p {
+  color: #64748b;
+  margin-top: 5px;
+  font-size: 0.95rem;
+}
+
+/* --- CAPTURE AREA ADJUSTMENTS --- */
+#resume-capture-area {
+  margin-bottom: 150px; /* Big space para sa floating footer */
+  padding: 50px; /* Mas malapad na padding para sa professional look */
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 40px rgba(15, 37, 115, 0.08);
+}
+
+/* --- FLOATING FOOTER --- */
+
+
+.actions-container {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  padding: 0 20px;
+}
+
+.save-as-wrapper {
+  position: relative;
+}
+
+.save-dropdown-menu {
+  position: absolute;
+  bottom: calc(100% + 15px) !important;
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 8px;
+  width: 220px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+/* --- COMPACT PERSONAL INFO HEADER --- */
+.personal-info-header-block {
+  display: flex;
+  align-items: center; /* In-align sa gitna para pantay sa picture */
+  gap: 40px;
+  background: #ffffff; /* Ginawang light gray para mag-standout */
+  padding: 30px;
+  border-radius: 16px;
+  margin-bottom: 25px;
+  border: 1px solid #e2e8f0;
+}
+
+.header-contact-fields {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Ginawang 2 columns para punong-puno ang space */
+  gap: 20px;
+}
+
+/* Ginawang full width ang Full Name field sa loob ng header */
+.header-contact-fields .input-group:first-child {
+  grid-column: 1 / -1;
+}
+
+/* Helper class for spacing */
+.mt-20 {
+  margin-top: 20px;
+}
+
+/* --- INTERACTIVE PHOTO PICKER --- */
+.interactive-photo-picker {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.profile-preview-wrapper {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  cursor: pointer;
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profile-preview-wrapper:hover {
+  transform: scale(1.05);
+}
+
+.profile-main-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #ffffff;
+  box-shadow: 0 8px 25px rgba(15, 37, 115, 0.15);
+}
+
+.photo-badge {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background: #266CA9;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+/* --- DROPDOWN MENU --- */
+.photo-dropdown-menu {
+  position: absolute;
+  left: 160px;
+  top: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  width: 220px;
+  animation: slideInLeft 0.3s ease;
+}
+
+.photo-instruction { 
+  font-size: 0.75rem; 
+  font-weight: 800; 
+  color: #94a3b8; 
+  text-transform: uppercase; 
+  margin-bottom: 10px; 
+  letter-spacing: 0.5px; 
+}
+
+.menu-options-stack { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 8px; 
+}
+
+.menu-opt-btn { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  padding: 10px; 
+  border: 1.5px solid #f1f5f9; 
+  border-radius: 8px; 
+  background: #fff; 
+  cursor: pointer; 
+  font-size: 0.85rem; 
+  font-weight: 600; 
+  color: #0F2573; 
+  transition: 0.2s; 
+  width: 100%; 
+}
+
+.menu-opt-btn:hover { background: #f8fafc; border-color: #266CA9; }
+.menu-opt-btn.active { border-color: #266CA9; background: #f0f7ff; }
+.small-thumb { width: 22px; height: 22px; border-radius: 50%; }
+
+@keyframes slideInLeft { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+/* --- CORE LAYOUT --- */
+.resume-view-wrapper { 
+  flex: 1; 
+  padding: 30px; 
+  overflow-y: auto; 
+  background: #f8fafd; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+}
+
+.resume-form-card { 
+  width: 100%; 
+  max-width: 900px; 
+  background: #ffffff; 
+  border: 1px solid #e2e8f0; 
+  border-radius: 16px; 
+  padding: 40px; 
+  box-shadow: 0 10px 30px rgba(15, 37, 115, 0.06); 
+}
+
+.form-header { 
+  display: flex; 
+  align-items: center; 
+  gap: 15px; 
+  margin-bottom: 35px; 
+  border-bottom: 2px solid #f1f5f9; 
+  padding-bottom: 20px; 
+}
+
+.form-header h2 { color: #0F2573; font-size: 1.8rem; font-weight: 800; }
+.form-section { margin-bottom: 45px; }
+.form-section h3 { color: #266CA9; font-size: 1.15rem; margin-bottom: 25px; display: flex; align-items: center; gap: 12px; font-weight: 700; border-left: 4px solid #266CA9; padding-left: 12px; }
+
+.form-grid { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 25px; 
+}
+
+.full-width { grid-column: 1 / -1; }
+.input-group { display: flex; flex-direction: column; gap: 8px; }
+.input-group label { font-size: 0.85rem; color: #475569; font-weight: 700; }
+.input-group input, .input-group select, .input-group textarea { background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px; color: #0F2573; font-size: 0.95rem; width: 100%; box-sizing: border-box; }
+
+/* --- FOOTER ACTIONS --- */
+.form-footer-actions { 
+  display: flex; 
+  justify-content: space-between; /* Pinaghiwalay ang buttons para hindi siksikan */
+  align-items: center; 
+  gap: 15px; 
+  margin-top: 30px; 
+  padding-top: 30px; 
+  border-top: 2px solid #f1f5f9; 
+  position: relative; 
+}
+
+.btn-draft, .btn-save-as, .btn-submit {
+  height: 48px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-draft {
+  background: white;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 0 20px;
+}
+
+.btn-draft:hover { background: #f1f5f9; }
+
+.save-as-container { position: relative; }
+
+.btn-save-as { 
+  background: white; 
+  border: 1.5px solid #e2e8f0; 
+  padding: 0 25px; 
+  color: #0F2573; 
+}
+
+.btn-save-as:hover { border-color: #266CA9; }
+
+.btn-submit { 
+  background: #0F2573; 
+  border: none; 
+  color: #ffffff; 
+  padding: 0 35px; 
+}
+
+.btn-submit:hover { 
+  transform: translateY(-3px); 
+  box-shadow: 0 8px 25px rgba(15, 37, 115, 0.3); 
+}
+
+.save-dropdown-menu { 
+  position: absolute; 
+  bottom: calc(100% + 12px); 
+  right: 0; 
+  background: white; 
+  border: 1px solid #e2e8f0; 
+  border-radius: 12px; 
+  padding: 8px; 
+  width: 240px; 
+  box-shadow: 0 10px 30px rgba(15, 37, 115, 0.15); 
+  z-index: 100; 
+}
+
+.save-opt { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; cursor: pointer; color: #475569; font-weight: 600; font-size: 0.85rem; }
+.save-opt span { margin-left: auto; font-size: 0.7rem; color: #94a3b8; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
+.save-opt:hover:not(.premium-lock) { background: #f0f7ff; color: #266CA9; }
+
+.premium-tag { margin-left: auto; display: flex; align-items: center; gap: 4px; background: #fff9db; color: #856404; font-size: 0.65rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; border: 1px solid #ffe066; }
+
+.animated-fade-in-up { animation: fadeInUp 0.2s ease-out; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+  .personal-info-header-block { flex-direction: column; align-items: center; text-align: center; }
+  .header-contact-fields { grid-template-columns: 1fr; width: 100%; }
+  .form-footer-actions { flex-direction: column; }
+  .btn-draft, .save-as-container, .btn-submit, .btn-save-as { width: 100%; }
+  .photo-dropdown-menu { position: relative; left: 0; transform: none; width: 100%; margin-top: 15px; }
+}
+
+/* --- UPDATED AWARDS UPLOAD BOX --- */
+.awards-upload-box {
+  margin-top: 20px;
+  border: 1.5px dashed #e2e8f0; /* Dashed pero same color ng inputs */
+  border-radius: 10px; /* Same roundness ng input fields */
+  padding: 20px;
+  background: #ffffff;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.awards-upload-box:hover {
+  border-color: #266CA9; /* Mag-blue pag naha-hover gaya ng input focus */
+  background: #f8fafc;
+}
+
+.award-label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #475569;
+  font-size: 0.95rem;
+  font-weight: 600;
+  width: 100%;
+  justify-content: center;
+}
+
+.award-preview {
+  margin-top: 15px;
+  max-height: 200px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* add */
+
+/* --- IMPROVED DYNAMIC CARDS (Work Exp & References) --- */
+.dynamic-row-card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #e2e8f0; /* Same border as Personal Info block */
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 20px;
+  transition: 0.3s ease;
+}
+
+.dynamic-row-card:hover {
+  border-color: #266CA9;
+  box-shadow: 0 5px 15px rgba(15, 37, 115, 0.05);
+}
+
+/* Header style for sections with buttons */
+.section-header-with-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Button to add more rows */
+.btn-add-inline {
+  background: #f0f7ff;
+  border: 1.5px solid #266CA9;
+  color: #266CA9;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-add-inline:hover {
+  background: #266CA9;
+  color: white;
+}
+
+/* Remove button style */
+.btn-remove {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: #fee2e2;
+  color: #ef4444;
+  border: 1px solid #fca5a5;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-remove:hover {
+  background: #ef4444;
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Siguraduhin na ang span-all ay gagana sa textareas */
+.span-all {
+  grid-column: 1 / -1;
+}
+
+/* --- IMPROVED SKILLS SECTION --- */
+.skills-input-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 25px;
+  transition: 0.3s ease;
+}
+
+.skills-input-card:hover {
+  border-color: #266CA9;
+}
+
+.skills-input-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end; /* I-align sa bottom para pantay sa button */
+}
+
+.btn-add-skill {
+  height: 48px; /* Same height as your other inputs */
+  padding: 0 20px;
+  background: #266CA9;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: 0.2s;
+}
+
+.btn-add-skill:hover {
+  background: #0F2573;
+  transform: translateY(-2px);
+}
+
+.skill-tag {
+  background: #f0f7ff;
+  border: 1px solid #266CA9;
+  color: #266CA9;
+  padding: 6px 12px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+
+.skill-tag button {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+}

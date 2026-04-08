@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Component Imports
@@ -9,9 +9,8 @@ import Footer from "../components/Footer/Footer";
 import LoginModal from "../components/Modals/LoginModal";
 import SignupModal from "../components/Modals/SignupModal";
 import ForgotModal from "../components/Modals/ForgotModal";
-import OTPModal from "../components/Modals/OTPModal";
 import JobCarousel from "../components/sections/JobCarousel";
-import JobLists from "./JobLists"; // Import the new file
+import JobLists from "./JobLists"; 
 import "../styles/register.css";
 
 // Image Imports
@@ -23,34 +22,21 @@ import slide3 from "../assets/slide3.png";
 const Landing = () => {
   const navigate = useNavigate();
 
-  // 1. Navigation & UI Visibility States
-  const [view, setView] = useState("home"); // 'home' or 'job-lists'
+  // 1. UI Visibility States
+  const [view, setView] = useState("home"); 
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
-  const [showOTP, setShowOTP] = useState(false);
 
-  // 2. Data & Form States
+  // 2. Data States
   const [role, setRole] = useState("applicant");
-  const [showPassword, setShowPassword] = useState(false);
   const [resetStep, setResetStep] = useState(1);
-  const [verificationCode, setVerificationCode] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [pendingEmail, setPendingEmail] = useState("");
 
   const closeAllModals = () => {
     setShowLogin(false);
     setShowSignup(false);
     setShowForgot(false);
-    setShowOTP(false);
     setResetStep(1);
-    setError("");
-    setVerificationCode("");
-    setNewPassword("");
-    setConfirmPassword("");
-    setShowPassword(false);
   };
 
   const handleNavigate = (target) => {
@@ -62,16 +48,28 @@ const Landing = () => {
     }
   };
 
-  const handleSignupSuccess = (email) => {
-    setPendingEmail(email);
-    setShowSignup(false);
-    setShowOTP(true);
-  };
+  useEffect(() => {
+    // If the user was redirected here with the 'openLogin' flag, show the modal
+    if (location.state?.openLogin) {
+      setShowLogin(true);
+      // Clean up the state so it doesn't pop up again on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
-  const handleOTPVerifySuccess = () => {
-    setShowOTP(false);
-    setShowLogin(true);
-  };
+  /**
+   * REPLACED MODAL LOGIC WITH PAGE NAVIGATION
+   * Triggered after SignupModal creates the user and sends the email
+   */
+  const handleSignupSuccess = (email) => {
+  console.log("Signup success caught for:", email);
+  
+  // Give Firebase/Firestore a moment to sync the profile 
+  // before the ProtectedRoute tries to read the role
+  setTimeout(() => {
+    navigate("/verify-email", { state: { email: email } });
+  }, 1000); 
+};
 
   return (
     <div className="landing-page">
@@ -79,16 +77,12 @@ const Landing = () => {
         logo={logoImg} 
         onLogin={() => setShowLogin(true)} 
         onSignup={() => setShowSignup(true)} 
-        onNavigate={handleNavigate} // Pass navigation handler
+        onNavigate={handleNavigate} 
       />
 
-      {/* Conditional Rendering based on 'view' state */}
       {view === "home" ? (
         <>
-          <Hero 
-            slides={[slide1, slide2, slide3]} 
-            onSignup={() => setShowSignup(true)} 
-          />
+          <Hero slides={[slide1, slide2, slide3]} onSignup={() => setShowSignup(true)} />
           <JobCarousel onSignup={() => setShowSignup(true)} />
           <InfoSection />
         </>
@@ -98,16 +92,15 @@ const Landing = () => {
       
       <Footer />
 
-      {/* --- Modals (Keep these exactly as they are) --- */}
+      {/* --- Modals --- */}
+      
       {showLogin && (
         <LoginModal 
           isOpen={showLogin} 
-          onClose={() => setShowLogin(false)} 
+          onClose={closeAllModals} 
           onForgotClick={() => { setShowLogin(false); setShowForgot(true); }}
           onSwitchToSignup={() => { setShowLogin(false); setShowSignup(true); }}
-          onLoginSuccess={(role) => navigate(`/${role}/dashboard`)}
-          showPassword={showPassword}
-          setShowPassword={setShowPassword}
+          onLoginSuccess={(userRole) => navigate(`/${userRole}/dashboard`)}
         />
       )}
 
@@ -117,19 +110,8 @@ const Landing = () => {
           onClose={closeAllModals}
           role={role}
           setRole={setRole}
-          showPassword={showPassword}
-          setShowPassword={setShowPassword}
           onSwitchToLogin={() => { setShowSignup(false); setShowLogin(true); }}
-          onSignupSuccess={handleSignupSuccess}
-        />
-      )}
-
-      {showOTP && (
-        <OTPModal 
-          isOpen={showOTP}
-          onClose={closeAllModals}
-          email={pendingEmail}
-          onVerifySuccess={handleOTPVerifySuccess}
+          onSignupSuccess={handleSignupSuccess} 
         />
       )}
 
@@ -139,16 +121,6 @@ const Landing = () => {
           onClose={closeAllModals}
           step={resetStep}
           setStep={setResetStep}
-          verificationCode={verificationCode}
-          setVerificationCode={setVerificationCode}
-          newPassword={newPassword}
-          setNewPassword={setNewPassword}
-          confirmPassword={confirmPassword}
-          setConfirmPassword={setConfirmPassword}
-          error={error}
-          setError={setError}
-          showPassword={showPassword}
-          setShowPassword={setShowPassword}
           onBackToLogin={() => { setShowForgot(false); setShowLogin(true); }}
         />
       )}

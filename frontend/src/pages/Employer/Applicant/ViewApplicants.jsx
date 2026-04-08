@@ -5,158 +5,155 @@ import {
   MagnifyingGlassIcon, 
   DownloadIcon,
   UpdateIcon,
-  ExternalLinkIcon
+  ExternalLinkIcon,
+  ClockIcon
 } from '@radix-ui/react-icons';
 import { useAuth } from '../../../contexts/AuthContext';
+import { db } from '../../../services/firebase'; 
+import { collection, query, getDocs, orderBy } from 'firebase/firestore'; 
 import StatusBadge from '../../../components/ui/StatusBadge'; 
 import '../../../styles/ViewApplicants.css';
 
 const ViewApplicants = () => {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [applicants, setApplicants] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
-    const loadData = async () => {
+    const fetchApplicants = async () => {
       try {
         setLoading(true);
-        // Mock Data reflecting your screenshot
-        setApplicants([
-          { id: "APP-9210", name: "Juan Dela Cruz", jobTitle: "Frontend Developer", status: "NEW", date: "2026-03-25" },
-          { id: "APP-4432", name: "Maria Clara", jobTitle: "UI/UX Designer", status: "SHORTLISTED", date: "2026-03-24" },
-        ]);
+        const appsRef = collection(db, "applications");
+        const q = query(appsRef, orderBy("date", "desc"));
+        const querySnapshot = await getDocs(q);
+        const fetchedApplicants = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setApplicants(fetchedApplicants);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching applicants:", err);
       } finally {
-        // Subtle delay for a premium feel
-        setTimeout(() => setLoading(false), 800);
+        setLoading(false);
       }
     };
-    if (token) loadData();
-  }, [token]);
 
-  const handleDownloadAll = async () => {
-    setDownloading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log("Downloading resumes for:", applicants.length, "candidates");
-    } finally {
-      setDownloading(false);
-    }
-  };
+    if (user) fetchApplicants();
+  }, [user]);
 
-  // Filter logic for search
   const filteredApplicants = applicants.filter(app => 
-    app.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase())
+    (app.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) || 
+    (app.jobTitle?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
 
+  const stats = {
+    total: applicants.length,
+    new: applicants.filter(a => a.status === 'NEW').length,
+    shortlisted: applicants.filter(a => a.status === 'SHORTLISTED').length
+  };
+
   return (
-    <div className="applicants-page-container animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <header className="applicants-header">
-        <div className="header-left">
-          <div className="header-icon-box bg-indigo-600 shadow-lg shadow-indigo-100">
-            <BackpackIcon className="w-6 h-6 text-white" />
+    <div className="view-applicants-flow">
+      {/* 1. Header Section */}
+      <header className="applicants-page-header">
+        <div className="header-left-side">
+          <div className="brand-badge">
+            <BackpackIcon /> <span>Talent Pipeline</span>
           </div>
-          <div>
-            <h1 className="text-2xl font-black text-slate-800 tracking-tight">Applicant Tracking</h1>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-              Manage and review your incoming talent pool
-            </p>
-          </div>
+          <h1 className="main-title">Review Candidates</h1>
         </div>
 
-        <div className="header-actions">
-          <div className="search-wrapper">
-            <MagnifyingGlassIcon className="search-icon" />
+        <div className="header-right-side">
+          <div className="search-box-pill">
+            <MagnifyingGlassIcon className="s-icon" />
             <input 
               type="text" 
-              placeholder="Search candidates..." 
+              placeholder="Search by name..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
             />
           </div>
-          
-          <button 
-            onClick={handleDownloadAll}
-            disabled={downloading || applicants.length === 0}
-            className="download-all-btn"
-          >
-            {downloading ? <UpdateIcon className="animate-spin" /> : <DownloadIcon />}
-            <span>{downloading ? 'Preparing...' : 'Download All Resumes'}</span>
+          <button className="export-btn">
+            <DownloadIcon /> <span>Export</span>
           </button>
         </div>
       </header>
 
-      <div className="applicants-card shadow-2xl shadow-slate-200/50">
-        <div className="overflow-x-auto">
-          <table className="applicants-table">
-            <thead>
+      {/* 2. Mini Stats Row */}
+      <div className="applicants-stats-grid">
+        <div className="mini-stat-card">
+          <span className="v">{stats.total}</span>
+          <span className="l">Total Candidates</span>
+        </div>
+        <div className="mini-stat-card">
+          <span className="v text-indigo-600">{stats.new}</span>
+          <span className="l">New Applications</span>
+        </div>
+        <div className="mini-stat-card">
+          <span className="v text-emerald-600">{stats.shortlisted}</span>
+          <span className="l">Shortlisted</span>
+        </div>
+      </div>
+
+      {/* 3. Table Section */}
+      <div className="applicants-table-container">
+        <table className="modern-data-table">
+          <thead>
+            <tr>
+              <th>Applicant</th>
+              <th>Position</th>
+              <th>Status</th>
+              <th>Applied</th>
+              <th className="text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
               <tr>
-                <th className="table-head-text">Candidate Name</th>
-                <th className="table-head-text">Position</th>
-                <th className="table-head-text">Status</th>
-                <th className="table-head-text">Date Applied</th>
-                <th className="table-head-text text-right">Profile</th>
+                <td colSpan="5" className="loader-state">
+                  <UpdateIcon className="animate-spin" />
+                  <span>Loading Pipeline...</span>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="5" className="py-32 text-center">
-                    <div className="flex flex-col items-center gap-4">
-                      <UpdateIcon className="animate-spin w-10 h-10 text-indigo-500" />
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fetching candidates...</span>
+            ) : filteredApplicants.length > 0 ? (
+              filteredApplicants.map((app) => (
+                <tr key={app.id} className="data-row">
+                  <td>
+                    <div className="candidate-cell">
+                      <div className="c-avatar">{app.name?.charAt(0)}</div>
+                      <div className="c-info">
+                        <span className="c-name">{app.name}</span>
+                        <span className="c-id">#{app.id.slice(0, 6).toUpperCase()}</span>
+                      </div>
                     </div>
                   </td>
-                </tr>
-              ) : filteredApplicants.length > 0 ? (
-                filteredApplicants.map((app) => (
-                  <tr key={app.id} className="applicant-row group">
-                    <td className="py-6 px-8">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">
-                          {app.name}
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-medium">REF: #{app.id}</span>
-                      </div>
-                    </td>
-                    <td className="py-6 px-8">
-                      <span className="job-tag bg-slate-50 text-slate-500 border border-slate-100 px-3 py-1 rounded-lg text-[11px] font-bold">
-                        {app.jobTitle}
-                      </span>
-                    </td>
-                    <td className="py-6 px-8">
-                      <StatusBadge currentStatus={app.status} />
-                    </td>
-                    <td className="py-6 px-8 text-slate-400 text-xs font-bold uppercase tracking-tight">
-                      {new Date(app.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </td>
-                    <td className="py-6 px-8 text-right">
-                      <button 
-                        onClick={() => navigate(`/employer/dashboard/applicants/${app.id}`)}
-                        className="view-link-btn"
-                      >
-                        View Details
-                        <ExternalLinkIcon className="w-3 h-3" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5" className="py-24 text-center">
-                    <p className="text-slate-400 font-bold uppercase text-xs tracking-widest">No candidates found</p>
+                  <td><span className="job-chip">{app.jobTitle}</span></td>
+                  <td><StatusBadge currentStatus={app.status} /></td>
+                  <td>
+                    <div className="date-cell">
+                      <ClockIcon />
+                      {app.date ? new Date(app.date).toLocaleDateString() : 'N/A'}
+                    </div>
+                  </td>
+                  <td className="text-right">
+                    <button 
+                      className="action-link"
+                      onClick={() => navigate(`/employer/dashboard/applicants/${app.id}`)}
+                    >
+                      View Details <ExternalLinkIcon />
+                    </button>
                   </td>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="empty-state">No matching candidates found.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
