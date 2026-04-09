@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { CheckCircledIcon, InfoCircledIcon, ExclamationTriangleIcon, Cross2Icon } from '@radix-ui/react-icons';
-import '../styles/Toasts.css';
+import '../styles/Toast/Toast.css';
 
 const ToastContext = createContext();
 

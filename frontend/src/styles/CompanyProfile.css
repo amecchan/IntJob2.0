@@ -185,11 +185,15 @@
   font-weight: 700;
 }
 
-/* 5. Main Form Card */
+/* 5. Main Form Card & Sections */
 .main-entry-card {
   padding: 48px;
   background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
   background-size: 30px 30px;
+}
+
+.form-section {
+  margin-bottom: 48px;
 }
 
 .section-heading {
@@ -199,10 +203,14 @@
   margin-bottom: 32px;
 }
 
-.input-row-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px 24px;
+/* Label Styling (Used in sections above) */
+.input-field-group label {
+  font-size: 11px;
+  font-weight: 900;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding-left: 4px;
 }
 
 .input-field-group {
@@ -211,6 +219,7 @@
   gap: 10px;
 }
 
+/* Full Width Utility */
 .input-field-group.full-width {
   grid-column: span 2;
 }
@@ -242,6 +251,21 @@
   box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.05);
 }
 
+/* Mobile Responsive Fix for the Input Grid */
+@media (max-width: 768px) {
+  .input-row-grid {
+    grid-template-columns: 1fr; /* Stack inputs on one column for mobile */
+  }
+  
+  .input-field-group.full-width {
+    grid-column: span 1;
+  }
+  
+  .main-entry-card {
+    padding: 24px; /* Reduce padding for smaller screens */
+  }
+}
+
 /* Icons inside inputs */
 .with-icon-box {
   position: relative;
@@ -250,7 +274,7 @@
 .field-icon {
   position: absolute;
   left: 20px;
-  top: 45px;
+  top: 42px; /* Adjusted to align with input box height */
   color: #94a3b8;
 }
 
@@ -265,6 +289,8 @@
 }
 
 .legal-notice {
+  display: flex;
+  align-items: center;
   font-size: 11px;
   font-weight: 700;
   color: #94a3b8;

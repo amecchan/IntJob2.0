@@ -7,7 +7,7 @@ import { MagnifyingGlassIcon, PlusIcon, LayersIcon } from '@radix-ui/react-icons
 import { db } from '../../services/firebase';
 import { collection, getDocs, deleteDoc, doc, query, where } from 'firebase/firestore';
 import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../context/ToastContext'; // Import Toast
+import { useToast } from '../../contexts/ToastContext'; // Import Toast
 import '../../styles/JobManagement.css';
 
 const JobManagement = () => {

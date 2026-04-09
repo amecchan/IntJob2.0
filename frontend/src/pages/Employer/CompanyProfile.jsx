@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { 
   CameraIcon, EnvelopeClosedIcon, MobileIcon, PinBottomIcon, 
-  CheckCircledIcon, UpdateIcon, GlobeIcon, Link2Icon, ShadowIcon, UploadIcon
+  CheckCircledIcon, UpdateIcon, GlobeIcon, Link2Icon, LockClosedIcon 
 } from '@radix-ui/react-icons';
 import { db, storage } from '../../services/firebase';
 import { doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../context/ToastContext'; // Import Toast
+import { useToast } from '../../contexts/ToastContext';
 import '../../styles/CompanyProfile.css';
 
 const CompanyProfile = () => {
   const { user } = useAuth();
-  const { showToast } = useToast(); // Initialize Toast
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     name: "", email: "", phone: "", location: "",
     website: "", taxId: "", permitNo: "", foundedDate: "",
@@ -129,6 +129,7 @@ const CompanyProfile = () => {
 
         <main className="form-content-area">
           <div className="glass-card main-entry-card">
+            {/* 1. GENERAL INFORMATION */}
             <section className="form-section">
               <h3 className="section-heading">General Information</h3>
               <div className="input-row-grid">
@@ -152,7 +153,64 @@ const CompanyProfile = () => {
                 </div>
               </div>
             </section>
-            {/* Legal section remains same */}
+
+            {/* 2. BUSINESS PRESENCE (Syncs the missing Location) */}
+            <section className="form-section legal-top-border">
+              <h3 className="section-heading">Business Presence</h3>
+              <div className="input-row-grid">
+                <div className="input-field-group full-width with-icon-box">
+                  <label>Headquarters / Office Location</label>
+                  <PinBottomIcon className="field-icon" />
+                  <input 
+                    type="text" 
+                    className="pad-icon" 
+                    placeholder="City, Country (e.g., Manila, Philippines)"
+                    value={formData.location} 
+                    onChange={(e) => setFormData({...formData, location: e.target.value})} 
+                  />
+                </div>
+                <div className="input-field-group with-icon-box">
+                  <label>Contact Number</label>
+                  <MobileIcon className="field-icon" />
+                  <input 
+                    type="tel" 
+                    className="pad-icon" 
+                    placeholder="+63 000 000 0000"
+                    value={formData.phone} 
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})} 
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* 3. LEGAL CREDENTIALS */}
+            <section className="form-section legal-top-border">
+              <h3 className="section-heading">Legal Credentials</h3>
+              <div className="input-row-grid">
+                <div className="input-field-group">
+                  <label>Tax ID (TIN)</label>
+                  <input 
+                    type="text" 
+                    placeholder="000-000-000-000"
+                    value={formData.taxId} 
+                    onChange={(e) => setFormData({...formData, taxId: e.target.value})} 
+                  />
+                </div>
+                <div className="input-field-group">
+                  <label>Business Permit No.</label>
+                  <input 
+                    type="text" 
+                    placeholder="BP-2026-XXXXX"
+                    value={formData.permitNo} 
+                    onChange={(e) => setFormData({...formData, permitNo: e.target.value})} 
+                  />
+                </div>
+              </div>
+              <p className="legal-notice">
+                <LockClosedIcon style={{marginRight: '4px'}} /> 
+                This information is encrypted and only used for employer verification.
+              </p>
+            </section>
           </div>
         </main>
       </div>

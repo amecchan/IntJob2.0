@@ -81,3 +81,53 @@
   @apply h-auto min-h-[120px] bg-white border border-slate-100 p-6 rounded-[2rem] 
          flex items-center gap-5 shadow-sm transition-transform hover:-translate-y-1;
 }
+
+/* ========================================================================== */
+/* For Calendar Icon in Stats */
+/* Update the header to be a flex row */
+.db-welcome-wrapper {
+  @apply flex flex-col md:flex-row md:items-center justify-between gap-6;
+}
+
+/* Calendar Button Styling */
+.calendar-quick-access {
+  @apply flex items-center gap-4 bg-white border border-slate-100 p-3 pr-6 rounded-2xl
+         shadow-sm hover:shadow-md transition-all cursor-pointer text-left;
+}
+
+.cal-icon-box {
+  @apply bg-indigo-50 text-indigo-600 p-3 rounded-xl;
+}
+
+.cal-icon-box svg {
+  @apply w-5 h-5;
+}
+
+.cal-text {
+  @apply flex flex-col;
+}
+
+.cal-label {
+  @apply text-xs font-black text-slate-800 uppercase tracking-tight;
+}
+
+.cal-sub {
+  @apply text-[10px] font-bold text-indigo-500;
+}
+
+.arrow-transition {
+  @apply text-slate-300 transition-transform;
+}
+
+/* Agenda Drawer */
+.agenda-drawer {
+  @apply bg-indigo-600 p-6 rounded-[2rem] text-white flex flex-col md:flex-row gap-6 mb-4;
+}
+
+.agenda-item {
+  @apply flex items-center gap-3 text-xs font-medium bg-indigo-500/30 px-4 py-2 rounded-full;
+}
+
+.agenda-item svg {
+  @apply w-4 h-4 text-indigo-200;
+}

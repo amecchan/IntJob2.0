@@ -106,3 +106,36 @@
 .sidebar-nav::-webkit-scrollbar-thumb {
   @apply bg-white/5 rounded-full;
 }
+
+/* Logout Modal Styling */
+.logout-modal-overlay {
+  @apply fixed inset-0 z-[999] bg-[#0F172A]/80 backdrop-blur-sm flex items-center justify-center p-6;
+}
+
+.logout-modal-card {
+  @apply bg-white rounded-[2.5rem] p-10 max-w-sm w-full text-center shadow-2xl;
+}
+
+.logout-modal-icon {
+  @apply w-20 h-20 bg-red-50 rounded-[2rem] flex items-center justify-center mx-auto mb-6;
+}
+
+.logout-modal-title {
+  @apply text-2xl font-black text-slate-800 tracking-tight mb-3;
+}
+
+.logout-modal-text {
+  @apply text-sm font-bold text-slate-400 leading-relaxed mb-8;
+}
+
+.logout-modal-actions {
+  @apply flex flex-col gap-3;
+}
+
+.modal-btn-confirm {
+  @apply py-4 bg-red-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-500/20;
+}
+
+.modal-btn-cancel {
+  @apply py-4 bg-slate-50 text-slate-500 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-slate-100 transition-all;
+}

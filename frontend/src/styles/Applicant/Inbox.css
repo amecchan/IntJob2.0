@@ -3,13 +3,12 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 140px); /* Adjusted to keep it inside your dashboard padding */
+  height: 100%; /* Change from calc(100vh - 140px) to 100% */
   background: #ffffff; 
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 15px rgba(15, 37, 115, 0.06);
-  margin: 10px;
+  margin: 0; /* Let the dashboard main-content handle the margin */
 }
 
 .inbox-wrapper {
@@ -188,4 +187,68 @@
 .reply-btn:hover {
   background: #e2e8f0;
   color: #0F2573;
+}
+
+
+/* --- Desktop vs Mobile Logic --- */
+.mobile-back-btn {
+  display: none; /* Hidden on desktop */
+  background: none;
+  border: none;
+  color: #266CA9;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.empty-chat-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #94a3b8;
+  font-weight: 700;
+  font-style: italic;
+}
+
+/* ================== RESPONSIVE MEDIA QUERIES ================== */
+
+@media (max-width: 768px) {
+  .inbox-page {
+    height: calc(100vh - 80px); /* Tighter fit for mobile */
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .message-list {
+    width: 100%; /* Take full width on mobile */
+    border-right: none;
+  }
+
+  .chat-view {
+    width: 100%;
+    position: absolute; /* Layer it on top */
+    top: 0;
+    left: 100%; /* Start off-screen */
+    height: 100%;
+    transition: left 0.3s ease-in-out;
+    z-index: 10;
+  }
+
+  /* When a chat is active, slide it in */
+  .inbox-wrapper.show-chat .chat-view {
+    left: 0;
+  }
+
+  .mobile-back-btn {
+    display: flex;
+    align-items: center;
+  }
+
+  .chat-bubble {
+    max-width: 85%; /* Give bubbles more room on small screens */
+  }
+
+  .chat-header h2 {
+    font-size: 0.9rem;
+  }
 }
