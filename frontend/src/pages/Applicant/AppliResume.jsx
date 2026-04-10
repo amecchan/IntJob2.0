@@ -1,14 +1,19 @@
+import React, { useState, useEffect } from 'react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
-import React, { useState, useEffect } from 'react';
 import { auth } from "../../services/firebase";
 import { 
   FileTextIcon, Pencil2Icon, PersonIcon, BackpackIcon, 
   RocketIcon, QuoteIcon, CameraIcon, ImageIcon, 
   ChevronDownIcon, DownloadIcon, PlusIcon, 
-  Cross1Icon, TrashIcon
+  Cross1Icon, TrashIcon, CheckIcon
 } from '@radix-ui/react-icons';
+
 import "../../styles/Applicant/Resume.css";
+
+// Dynamic Helpers
+import { extractTextFromPDF } from "../../services/pdfHelper";
+import { parseResumeWithAI } from "../../services/aiParser";
 
 const ResumeForm = () => {
   // --- STATES ---
@@ -24,31 +29,82 @@ const ResumeForm = () => {
   const [awardImage, setAwardImage] = useState(null);
   const [profilePic, setProfilePic] = useState("");
   const [googlePhoto, setGooglePhoto] = useState("");
+  
+  // UI State
   const [showPhotoMenu, setShowPhotoMenu] = useState(false);
   const [showSaveMenu, setShowSaveMenu] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // --- AUTOFILL & DRAFT LOADING ---
+  // --- INITIALIZATION & DRAFT LOADING ---
   useEffect(() => {
     const currentUser = auth.currentUser;
+    
     if (currentUser) {
-      setFormData(prev => ({ ...prev, fullName: currentUser.displayName || "", email: currentUser.email || "" }));
+      setFormData(prev => ({ 
+        ...prev, 
+        fullName: prev.fullName || currentUser.displayName || "", 
+        email: prev.email || currentUser.email || "" 
+      }));
       setGooglePhoto(currentUser.photoURL || "");
-      setProfilePic(currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.displayName}&background=0D8ABC&color=fff`);
+      
+      const initialAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'User')}&background=0D8ABC&color=fff`;
+      setProfilePic(prev => prev || currentUser.photoURL || initialAvatar);
     }
 
-    // Load Draft if exists
-    const savedDraft = JSON.parse(localStorage.getItem("resume_draft"));
-    if (savedDraft) {
-      setFormData(savedDraft.formData);
-      setSkills(savedDraft.skills);
-      setExperiences(savedDraft.experiences);
-      setReferences(savedDraft.references);
-      setAwardImage(savedDraft.awardImage);
-      if(savedDraft.profilePic) setProfilePic(savedDraft.profilePic);
+    const savedData = localStorage.getItem("resume_draft");
+    if (savedData && savedData !== "undefined") {
+      try {
+        const parsedDraft = JSON.parse(savedData);
+        if (parsedDraft.formData) setFormData(prev => ({ ...prev, ...parsedDraft.formData }));
+        if (parsedDraft.skills) setSkills(parsedDraft.skills || []);
+        if (parsedDraft.experiences) setExperiences(parsedDraft.experiences || []);
+        if (parsedDraft.references) setReferences(parsedDraft.references || []);
+        if (parsedDraft.profilePic) setProfilePic(parsedDraft.profilePic);
+        if (parsedDraft.awardImage) setAwardImage(parsedDraft.awardImage);
+      } catch (err) {
+        console.error("Failed to parse draft:", err);
+      }
     }
   }, []);
 
-  // --- HANDLERS ---
+  // --- AI HANDLER ---
+  const handleAIAutofill = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      const rawText = await extractTextFromPDF(file);
+      
+      if (!rawText || rawText.trim().length === 0) {
+        throw new Error("PDF yielded no text. Is it a scanned image?");
+      }
+
+      const aiResults = await parseResumeWithAI(rawText);
+
+      // Fix for the yyyy-MM error: append -01 if only year is provided
+      const formattedYear = aiResults.yearGraduated && aiResults.yearGraduated.toString().length === 4 
+        ? `${aiResults.yearGraduated}-01` 
+        : aiResults.yearGraduated;
+
+      setFormData(prev => ({ 
+        ...prev, 
+        ...aiResults,
+        yearGraduated: formattedYear || prev.yearGraduated
+      }));
+
+      if (aiResults.skills && Array.isArray(aiResults.skills)) setSkills(aiResults.skills);
+      if (aiResults.experiences && Array.isArray(aiResults.experiences)) setExperiences(aiResults.experiences);
+      
+    } catch (error) {
+      console.error("AI Error:", error);
+      alert("AI was unable to parse this file format.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- FORM HANDLERS ---
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -79,32 +135,18 @@ const ResumeForm = () => {
     }
   };
 
-  // --- DRAFT SAVING ---
   const saveDraft = () => {
     const draftData = { formData, skills, experiences, references, awardImage, profilePic };
     localStorage.setItem("resume_draft", JSON.stringify(draftData));
-    alert("Draft saved to your browser!");
+    alert("Progress saved!");
   };
 
-  // --- DOWNLOAD LOGIC ---
+  // --- EXPORT FUNCTIONS ---
   const downloadAsPDF = async () => {
     const element = document.getElementById('resume-capture-area'); 
     if (!element) return;
     
-    // Hide buttons temporarily (Para hindi kasama sa PDF)
-    const buttons = element.querySelectorAll('.btn-add-inline, .btn-remove, .btn-add-skill');
-    buttons.forEach(btn => btn.style.display = 'none');
-
-    const canvas = await html2canvas(element, { 
-      scale: 2, 
-      useCORS: true,
-      windowWidth: element.scrollWidth,
-      windowHeight: element.scrollHeight
-    });
-    
-    // Show buttons back
-    buttons.forEach(btn => btn.style.display = 'flex');
-
+    const canvas = await html2canvas(element, { scale: 2, useCORS: true });
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -112,32 +154,37 @@ const ResumeForm = () => {
     
     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
     pdf.save(`${formData.fullName || "Resume"}.pdf`);
-  };
-
-  const downloadAsImage = async () => {
-    const element = document.getElementById('resume-capture-area');
-    if (!element) return;
-
-    const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-    const link = document.createElement('a');
-    link.download = `${formData.fullName || "Resume"}.png`;
-    link.href = canvas.toDataURL();
-    link.click();
+    setShowSaveMenu(false);
   };
 
   return (
     <div className="resume-view-wrapper">
-      {/* 1. HEADER (OUTSIDE) */}
       <header className="page-main-header">
-          <div className="header-info">
-            <FileTextIcon width="30" height="30" color="#4cd2f3" />
-            <h1>Resume Fill-up Form</h1>
-          </div>
-          <p>Fill up the form to generate your professional resume.</p>
+        <div className="header-info">
+          <FileTextIcon width="32" height="32" color="#4cd2f3" />
+          <h1>Resume Builder</h1>
+        </div>
+        <p>Craft your professional identity or let our AI do the heavy lifting.</p>
       </header>
 
-      {/* 2. CAPTURE AREA (THE CLEAN RESUME) */}
-      <div id="resume-capture-area" className="resume-form-card animated-fade-in">
+      {/* AI HERO SECTION */}
+      <div className="ai-autofill-section">
+        <div className={`ai-card ${loading ? 'loading-pulse' : ''}`}>
+          <div className="ai-icon-box">
+             <RocketIcon width="24" height="24" color="white" />
+          </div>
+          <div className="ai-text">
+            <strong>AI Smart Import</strong>
+            <p>{loading ? "Analyzing your resume... please wait." : "Upload PDF to instantly fill your profile details."}</p>
+          </div>
+          <label className={`ai-upload-label ${loading ? 'disabled' : ''}`}>
+            {loading ? <span className="loader-text">Processing...</span> : <>Import PDF <PlusIcon /></>}
+            <input type="file" hidden accept=".pdf" onChange={handleAIAutofill} disabled={loading} />
+          </label>
+        </div>
+      </div>
+
+      <div id="resume-capture-area" className="resume-form-card">
         
         {/* PERSONAL INFORMATION */}
         <section className="form-section">
@@ -145,21 +192,26 @@ const ResumeForm = () => {
           <div className="personal-info-header-block">
             <div className="interactive-photo-picker">
               <div className="profile-preview-wrapper" onClick={() => setShowPhotoMenu(!showPhotoMenu)}>
-                <img src={profilePic} alt="Profile" className="profile-main-img" />
+                <img 
+                  src={profilePic || 'https://via.placeholder.com/150'} 
+                  className="profile-main-img"
+                  alt="Profile" 
+                  onError={(e) => e.target.src = 'https://via.placeholder.com/150'} 
+                />
                 <div className="photo-badge"><CameraIcon /></div>
               </div>
               {showPhotoMenu && (
-                <div className="photo-dropdown-menu">
-                  <p className="photo-instruction">Source:</p>
+                <div className="photo-dropdown-menu animated-fade-in">
+                  <p className="photo-instruction">Photo Source</p>
                   <div className="menu-options-stack">
                     {googlePhoto && (
                       <button type="button" className="menu-opt-btn" onClick={() => { setProfilePic(googlePhoto); setShowPhotoMenu(false); }}>
-                        <img src={googlePhoto} className="small-thumb" alt="google" /> Google Photo
+                        <img src={googlePhoto} className="small-thumb" alt="google" /> Use Google Photo
                       </button>
                     )}
                     <label className="menu-opt-btn">
                       <input type="file" hidden onChange={(e) => handleFileUpload(e, setProfilePic)} accept="image/*" />
-                      <ImageIcon /> <span>Upload</span>
+                      <ImageIcon /> <span>Upload Local File</span>
                     </label>
                   </div>
                 </div>
@@ -169,22 +221,22 @@ const ResumeForm = () => {
             <div className="header-contact-fields">
               <div className="input-group">
                 <label>Full Name</label>
-                <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} />
+                <input type="text" name="fullName" value={formData.fullName} placeholder="Juan Dela Cruz" onChange={handleChange} />
               </div>
               <div className="input-group">
                 <label>Email Address</label>
-                <input type="email" name="email" value={formData.email} onChange={handleChange} />
+                <input type="email" name="email" value={formData.email} placeholder="juan@example.com" onChange={handleChange} />
               </div>
               <div className="input-group">
                 <label>Phone Number</label>
-                <input type="text" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} />
+                <input type="text" name="phoneNumber" value={formData.phoneNumber} placeholder="+63 9xx..." onChange={handleChange} />
               </div>
             </div>
           </div>
 
-          <div className="form-grid mt-20">
-            <div className="input-group span-2">
-              <label>Address</label>
+          <div className="form-grid">
+            <div className="input-group span-all">
+              <label>Current Address</label>
               <input type="text" name="address" value={formData.address} onChange={handleChange} />
             </div>
             <div className="input-group">
@@ -194,38 +246,31 @@ const ResumeForm = () => {
             <div className="input-group">
               <label>Gender</label>
               <select name="gender" value={formData.gender} onChange={handleChange}>
-                <option value="">Select</option>
+                <option value="">Select Gender</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
+                <option value="Other">Other</option>
               </select>
             </div>
           </div>
         </section>
 
-        {/* EDUCATIONAL BACKGROUND */}
+        {/* EDUCATION */}
         <section className="form-section">
-          <h3><BackpackIcon /> Educational Background</h3>
+          <h3><BackpackIcon /> Education</h3>
           <div className="form-grid">
-            <div className="input-group span-2">
-              <label>School Name</label>
+            <div className="input-group span-all">
+              <label>School/University</label>
               <input type="text" name="schoolName" value={formData.schoolName} onChange={handleChange} />
             </div>
             <div className="input-group">
-              <label>Degree / Course</label>
+              <label>Degree / Program</label>
               <input type="text" name="degree" value={formData.degree} onChange={handleChange} />
             </div>
             <div className="input-group">
-              <label>Year Graduated</label>
-              <input type="month" name="yearGraduated" value={formData.yearGraduated} onChange={handleChange} />
+              <label>Graduation Date</label>
+              <input type="text" name="yearGraduated" placeholder="YYYY-MM" value={formData.yearGraduated} onChange={handleChange} />
             </div>
-          </div>
-          <div className="awards-upload-box">
-            <label className="award-label">
-              <ImageIcon /> 
-              <span>{awardImage ? "Change Award Photo" : "Upload Academic Awards (Optional)"}</span>
-              <input type="file" hidden onChange={(e) => handleFileUpload(e, setAwardImage)} accept="image/*" />
-            </label>
-            {awardImage && <img src={awardImage} className="award-preview" alt="Award Preview" />}
           </div>
         </section>
 
@@ -238,23 +283,23 @@ const ResumeForm = () => {
             </button>
           </div>
           {experiences.map((exp, index) => (
-            <div key={index} className="dynamic-row-card animated-fade-in">
+            <div key={index} className="dynamic-row-card">
               <div className="form-grid">
                 <div className="input-group">
-                  <label>Company Name</label>
+                  <label>Company</label>
                   <input type="text" name="company" value={exp.company} onChange={(e) => handleDynamicChange(index, e, experiences, setExperiences)} />
                 </div>
                 <div className="input-group">
-                  <label>Position / Role</label>
+                  <label>Position</label>
                   <input type="text" name="role" value={exp.role} onChange={(e) => handleDynamicChange(index, e, experiences, setExperiences)} />
                 </div>
-                <div className="input-group">
-                  <label>Duration</label>
+                <div className="input-group span-all">
+                  <label>Duration (e.g., Jan 2020 - Present)</label>
                   <input type="text" name="duration" value={exp.duration} onChange={(e) => handleDynamicChange(index, e, experiences, setExperiences)} />
                 </div>
                 <div className="input-group span-all">
-                  <label>Job Description</label>
-                  <textarea name="desc" value={exp.desc} onChange={(e) => handleDynamicChange(index, e, experiences, setExperiences)} />
+                  <label>Key Responsibilities</label>
+                  <textarea name="desc" value={exp.desc} rows="3" onChange={(e) => handleDynamicChange(index, e, experiences, setExperiences)} />
                 </div>
               </div>
               {experiences.length > 1 && (
@@ -269,20 +314,16 @@ const ResumeForm = () => {
         {/* SKILLS */}
         <section className="form-section">
           <h3><Pencil2Icon /> Skills & Expertise</h3>
-          <div className="skills-input-card animated-fade-in">
+          <div className="skills-input-card">
             <div className="skills-input-row">
-              <div className="input-group" style={{ flex: 1 }}>
-                <label>Add New Skill</label>
-                <input 
-                  type="text" 
-                  value={newSkill} 
-                  onChange={(e) => setNewSkill(e.target.value)} 
-                  onKeyPress={(e) => e.key === 'Enter' && addSkill()} 
-                />
-              </div>
-              <button type="button" className="btn-add-skill" onClick={addSkill}>
-                <PlusIcon /> Add
-              </button>
+              <input 
+                type="text" 
+                placeholder="e.g. React.js, Project Management..."
+                value={newSkill} 
+                onChange={(e) => setNewSkill(e.target.value)} 
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())} 
+              />
+              <button type="button" className="btn-add-skill" onClick={addSkill}>Add</button>
             </div>
             <div className="skills-tags-display mt-20">
               {skills.map((skill, index) => (
@@ -297,58 +338,39 @@ const ResumeForm = () => {
           </div>
         </section>
 
-        {/* REFERENCES */}
+        {/* AWARDS */}
         <section className="form-section">
-          <div className="section-header-with-btn">
-            <h3><QuoteIcon /> References</h3>
-            <button type="button" className="btn-add-inline" onClick={() => addItem(references, setReferences, { name: "", contact: "" })}>
-              <PlusIcon /> Add Reference
-            </button>
+          <h3><CheckIcon /> Certifications & Awards</h3>
+          <div className="awards-upload-box">
+             <label className="award-label">
+                <input type="file" hidden accept="image/*" onChange={(e) => handleFileUpload(e, setAwardImage)} />
+                <ImageIcon /> {awardImage ? "Change Certificate" : "Upload Certificate/Award Image"}
+             </label>
+             {awardImage && <img src={awardImage} className="award-preview" alt="Award" />}
           </div>
-          {references.map((ref, index) => (
-            <div key={index} className="dynamic-row-card animated-fade-in">
-              <div className="form-grid">
-                <div className="input-group">
-                  <label>Reference Name</label>
-                  <input type="text" name="name" value={ref.name} onChange={(e) => handleDynamicChange(index, e, references, setReferences)} />
-                </div>
-                <div className="input-group">
-                  <label>Contact Info</label>
-                  <input type="text" name="contact" value={ref.contact} onChange={(e) => handleDynamicChange(index, e, references, setReferences)} />
-                </div>
-              </div>
-              {references.length > 1 && (
-                <button type="button" className="btn-remove" onClick={() => removeItem(index, references, setReferences)}>
-                  <TrashIcon />
-                </button>
-              )}
-            </div>
-          ))}
         </section>
       </div>
 
-      {/* 3. FLOATING FOOTER ACTIONS */}
+      {/* FLOATING ACTION BAR */}
       <div className="floating-footer-actions">
         <div className="actions-container">
            <button type="button" className="btn-draft" onClick={saveDraft}>
              <Pencil2Icon /> Save Draft
            </button>
+           
            <div className="save-as-wrapper">
              <button type="button" className="btn-save-as" onClick={() => setShowSaveMenu(!showSaveMenu)}>
-               <DownloadIcon /> Save as... <ChevronDownIcon />
+               <DownloadIcon /> Export Resume <ChevronDownIcon />
              </button>
              {showSaveMenu && (
-                <div className="save-dropdown-menu animated-fade-in-up">
-                  <div className="save-opt" onClick={downloadAsPDF}>
-                    <FileTextIcon /> PDF Document <span>Free</span>
-                  </div>
-                  <div className="save-opt" onClick={downloadAsImage}>
-                    <ImageIcon /> Image (PNG) <span>Free</span>
-                  </div>
+                <div className="save-dropdown-menu animated-fade-in">
+                  <div className="save-opt" onClick={downloadAsPDF}><FileTextIcon /> Download PDF</div>
+                  <div className="save-opt" onClick={() => { /* logic for image */ setShowSaveMenu(false); }}><ImageIcon /> Download Image</div>
                 </div>
              )}
            </div>
-           <button type="button" className="btn-submit">Submit Resume</button>
+           
+           <button type="button" className="btn-submit">Complete Application</button>
         </div>
       </div>
     </div>

@@ -35,6 +35,7 @@ const ApplicationDashboard = () => {
   
   // Data State
   const [userData, setUserData] = useState(null);
+  const [firstName, setFirstName] = useState(""); // Dynamic Name State
   const [notifications, setNotifications] = useState([]);
   const [hasUnread, setHasUnread] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -42,21 +43,28 @@ const ApplicationDashboard = () => {
   const navigate = useNavigate();
   const notifRef = useRef(null);
 
-  // Firebase Auth & Real-time Notifications
+  // 1. Firebase Auth & Real-time Data
   useEffect(() => {
     let unsubscribeNotifications = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
-          const userDoc = await getDoc(doc(db, "users", user.uid));
-          if (userDoc.exists()) {
-            const data = userDoc.data();
+          // Listen to User Profile changes in real-time
+          const userDocRef = doc(db, "users", user.uid);
+          const userSnap = await getDoc(userDocRef);
+          
+          if (userSnap.exists()) {
+            const data = userSnap.data();
             
             if (data.role?.toLowerCase() === "applicant") {
               setUserData(data);
+              
+              // Safely extract the first name
+              const nameParts = data.fullName ? data.fullName.trim().split(" ") : ["Guest"];
+              setFirstName(nameParts[0]);
 
-              // Initialize Real-time Notifications
+              // 2. Real-time Notifications
               const q = query(
                 collection(db, "notifications"),
                 where("userId", "==", user.uid),
@@ -64,16 +72,13 @@ const ApplicationDashboard = () => {
               );
 
               unsubscribeNotifications = onSnapshot(q, (snapshot) => {
-                const notifs = snapshot.docs.map(doc => ({ 
-                  id: doc.id, 
-                  ...doc.data() 
-                }));
+                const notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 setNotifications(notifs);
                 setHasUnread(notifs.some(n => n.read === false));
               });
 
             } else {
-              navigate("/"); 
+              navigate("/"); // Wrong role
             }
           }
         } catch (error) {
@@ -82,8 +87,7 @@ const ApplicationDashboard = () => {
           setLoading(false);
         }
       } else {
-        if (unsubscribeNotifications) unsubscribeNotifications();
-        navigate("/");
+        navigate("/"); // No user
       }
     });
 
@@ -93,7 +97,7 @@ const ApplicationDashboard = () => {
     };
   }, [navigate]);
 
-  // Close notifications when clicking outside
+  // Click-away listener for notifications
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (notifRef.current && !notifRef.current.contains(event.target)) {
@@ -105,12 +109,13 @@ const ApplicationDashboard = () => {
   }, []);
 
   const markAllAsRead = async () => {
+    const unreadNotifs = notifications.filter(n => !n.read);
+    if (unreadNotifs.length === 0) return;
+
     const batch = writeBatch(db);
-    notifications.forEach((n) => {
-      if (!n.read) {
-        const ref = doc(db, "notifications", n.id);
-        batch.update(ref, { read: true });
-      }
+    unreadNotifs.forEach((n) => {
+      const ref = doc(db, "notifications", n.id);
+      batch.update(ref, { read: true });
     });
     await batch.commit();
   };
@@ -122,7 +127,12 @@ const ApplicationDashboard = () => {
     }
   };
 
-  if (loading) return <div className="loading-screen">Authenticating...</div>;
+  if (loading) return (
+    <div className="loading-screen">
+      <div className="spinner"></div>
+      <p>Loading your dashboard...</p>
+    </div>
+  );
 
   return (
     <div className="app-container">
@@ -171,7 +181,7 @@ const ApplicationDashboard = () => {
           </div>
           
           <div className="header-right">
-            {/* Notification Bell with Dropdown */}
+            {/* Notification Bell */}
             <div className="notif-container" ref={notifRef}>
               <button 
                 className={`icon-btn notification-btn ${showNotifications ? 'active' : ''}`}
@@ -197,7 +207,9 @@ const ApplicationDashboard = () => {
                           <div className="notif-content">
                             <p className="notif-title">{n.title}</p>
                             <p className="notif-msg">{n.message}</p>
-                            <span className="notif-time">Just now</span>
+                            <span className="notif-time">
+                                {n.createdAt?.toDate().toLocaleDateString()}
+                            </span>
                           </div>
                           {!n.read && <DotFilledIcon className="unread-dot" />}
                         </div>
@@ -212,10 +224,10 @@ const ApplicationDashboard = () => {
 
             <div className="user-pill" onClick={() => setCurrentView('profile')}>
               <div className="pill-avatar">
-                {userData?.fullName?.charAt(0).toUpperCase() || "U"}
+                {firstName?.charAt(0) || "U"}
               </div>
               <div className="pill-info">
-                <span className="pill-name">{userData?.fullName?.split(" ")[0]}</span>
+                <span className="pill-name">{firstName}</span>
                 <span className="pill-role">Applicant</span>
               </div>
             </div>
@@ -235,20 +247,20 @@ const ApplicationDashboard = () => {
                 return (
                   <div className="dashboard-home">
                     <header className="home-hero">
-                      <h1>Welcome back, {userData?.fullName?.split(" ")[0]}</h1>
+                      <h1>Welcome back, {firstName}</h1>
                       <p>Stay updated with your latest job match opportunities.</p>
                     </header>
 
                     <section className="info-grid">
                       <div className="card stat-card">
-                        <h3>Your Active Skills</h3>
+                        <h3>Your Registered Skills</h3>
                         <div className="skill-tags">
                           {userData?.selectedSkills?.length > 0 ? (
                             userData.selectedSkills.map(skill => (
                               <span key={skill} className="skill-pill">{skill}</span>
                             ))
                           ) : (
-                            <p className="text-muted">No skills listed.</p>
+                            <p className="text-muted">No skills listed yet.</p>
                           )}
                         </div>
                       </div>
@@ -258,7 +270,7 @@ const ApplicationDashboard = () => {
                     <div className="jobs-layout-grid">
                       <div className="empty-state-card">
                         <BackpackIcon />
-                        <p>No direct matches found. Try exploring Job Categories.</p>
+                        <p>No direct matches found. Try exploring <strong>Browse Jobs</strong> to find your next role.</p>
                       </div>
                     </div>
                   </div>
