@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
-import { auth } from "../../services/firebase";
+import { storage, db } from "../../services/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useToast } from "../../contexts/ToastContext"; // Assuming you have this
 import { 
   FileTextIcon, Pencil2Icon, PersonIcon, BackpackIcon, 
   RocketIcon, QuoteIcon, CameraIcon, ImageIcon, 

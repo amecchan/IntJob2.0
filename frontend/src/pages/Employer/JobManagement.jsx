@@ -73,9 +73,8 @@ const JobManagement = () => {
       <header className="mgmt-header">
         <div className="header-left">
           <div className="mgmt-badge">
-            <LayersIcon /> <span>Inventory Management</span>
+            <LayersIcon /> <span>Job Posting Management</span>
           </div>
-          <h1 className="mgmt-title">Job <span className="text-indigo-600">Postings</span></h1>
         </div>
 
         <div className="header-right">

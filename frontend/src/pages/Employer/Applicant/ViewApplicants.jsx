@@ -6,11 +6,14 @@ import {
   DownloadIcon,
   UpdateIcon,
   ExternalLinkIcon,
-  ClockIcon
+  ClockIcon,
+  PersonIcon,
+  CheckIcon,
+  EnvelopeOpenIcon 
 } from '@radix-ui/react-icons';
 import { useAuth } from '../../../contexts/AuthContext';
 import { db } from '../../../services/firebase'; 
-import { collection, query, getDocs, orderBy } from 'firebase/firestore'; 
+import { collection, query, onSnapshot, orderBy } from 'firebase/firestore'; // Changed to onSnapshot
 import StatusBadge from '../../../components/ui/StatusBadge'; 
 import '../../../styles/ViewApplicants.css';
 
@@ -22,25 +25,25 @@ const ViewApplicants = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchApplicants = async () => {
-      try {
-        setLoading(true);
-        const appsRef = collection(db, "applications");
-        const q = query(appsRef, orderBy("date", "desc"));
-        const querySnapshot = await getDocs(q);
-        const fetchedApplicants = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setApplicants(fetchedApplicants);
-      } catch (err) {
-        console.error("Error fetching applicants:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!user) return;
 
-    if (user) fetchApplicants();
+    const appsRef = collection(db, "applications");
+    const q = query(appsRef, orderBy("createdAt", "desc")); // Using createdAt for better accuracy
+
+    // Use onSnapshot for REAL-TIME updates
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedApplicants = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setApplicants(fetchedApplicants);
+      setLoading(false);
+    }, (err) => {
+      console.error("Error fetching applicants:", err);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [user]);
 
   const filteredApplicants = applicants.filter(app => 
@@ -48,15 +51,35 @@ const ViewApplicants = () => {
     (app.jobTitle?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
 
-  const stats = {
-    total: applicants.length,
-    new: applicants.filter(a => a.status === 'NEW').length,
-    shortlisted: applicants.filter(a => a.status === 'SHORTLISTED').length
-  };
+  // Statistics Calculation with Case Insensitivity
+  const statsList = [
+    { 
+      label: 'Total Candidates', 
+      value: applicants.length, 
+      icon: <PersonIcon />, 
+      color: '#4f46e5', 
+      bg: '#eef2ff' 
+    },
+    { 
+      label: 'New Applications', 
+      // Checking for both "NEW" and "pending" just in case
+      value: applicants.filter(a => a.status?.toUpperCase() === 'NEW' || a.status?.toLowerCase() === 'pending').length, 
+      icon: <EnvelopeOpenIcon />, 
+      color: '#d97706', 
+      bg: '#fffbeb' 
+    },
+    { 
+      label: 'Shortlisted', 
+      // Using .toUpperCase() ensures it counts regardless of how it was saved
+      value: applicants.filter(a => a.status?.toUpperCase() === 'SHORTLISTED').length, 
+      icon: <CheckIcon />, 
+      color: '#10b981', 
+      bg: '#ecfdf5' 
+    },
+  ];
 
   return (
     <div className="view-applicants-flow">
-      {/* 1. Header Section */}
       <header className="applicants-page-header">
         <div className="header-left-side">
           <div className="brand-badge">
@@ -81,23 +104,23 @@ const ViewApplicants = () => {
         </div>
       </header>
 
-      {/* 2. Mini Stats Row */}
       <div className="applicants-stats-grid">
-        <div className="mini-stat-card">
-          <span className="v">{stats.total}</span>
-          <span className="l">Total Candidates</span>
-        </div>
-        <div className="mini-stat-card">
-          <span className="v text-indigo-600">{stats.new}</span>
-          <span className="l">New Applications</span>
-        </div>
-        <div className="mini-stat-card">
-          <span className="v text-emerald-600">{stats.shortlisted}</span>
-          <span className="l">Shortlisted</span>
-        </div>
+        {statsList.map((stat, i) => (
+          <div key={i} className="stat-card-modern">
+            <div 
+              className="stat-icon-box" 
+              style={{ backgroundColor: stat.bg, color: stat.color }}
+            >
+              {stat.icon}
+            </div>
+            <div className="stat-info">
+              <span className="stat-number">{loading ? "..." : stat.value}</span>
+              <span className="stat-name">{stat.label}</span>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* 3. Table Section */}
       <div className="applicants-table-container">
         <table className="modern-data-table">
           <thead>
@@ -139,11 +162,11 @@ const ViewApplicants = () => {
                   </td>
                   <td className="text-right">
                     <button 
-                      className="action-link"
-                      onClick={() => navigate(`/employer/dashboard/applicants/${app.id}`)}
-                    >
-                      View Details <ExternalLinkIcon />
-                    </button>
+                        className="action-link"
+                        onClick={() => navigate(`/employer/dashboard/applicants/${app.id}`)}
+                      >
+                        View Details <ExternalLinkIcon />
+                      </button>
                   </td>
                 </tr>
               ))

@@ -28,8 +28,8 @@ const VerifyEmail = () => {
             // Auto-redirect after success
             setTimeout(() => {
                 // Redirect to Home, but tell Home to open the Login modal
-                navigate('/', { state: { openLogin: true } }); 
-                }, 2500);
+                navigate('/applicant/survey'); 
+              }, 2500);
           }
         }
       }, 3000); 

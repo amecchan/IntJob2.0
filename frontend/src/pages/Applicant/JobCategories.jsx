@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { db, auth } from "../../services/firebase";
 import { 
   collection, onSnapshot, query, where, 
-  addDoc, serverTimestamp, getDocs, limit 
+  addDoc, serverTimestamp, getDocs, limit,
+  doc, updateDoc, increment // <--- ADDED THESE
 } from "firebase/firestore";
 import { 
   BackpackIcon, CheckIcon, QuestionMarkCircledIcon, 
@@ -40,35 +41,46 @@ const JobCategories = ({ searchTerm, onSwitchView }) => {
 
   // --- FUNCTIONALITY: APPLY ---
   const handleApply = async (job) => {
-    const user = auth.currentUser;
-    if (!user) return alert("Please log in to apply.");
+  const user = auth.currentUser;
+  if (!user) return alert("Please log in to apply.");
 
-    try {
-      // 1. Create Application
-      await addDoc(collection(db, "applications"), {
-        jobId: job.id,
-        jobTitle: job.title,
-        applicantId: user.uid,
-        employerId: job.employerId,
-        status: "pending",
-        createdAt: serverTimestamp()
-      });
+  try {
+    // 1. Create the Application Record
+    await addDoc(collection(db, "applications"), {
+      jobId: job.id,
+      jobTitle: job.title,
+      applicantId: user.uid,
+      employerId: job.employerId,
+      name: user.displayName || "Anonymous Applicant",
+      email: user.email,
+      phone: "+63 900 000 0000",
+      status: "NEW",
+      date: new Date().toISOString(),
+      createdAt: serverTimestamp(),
+    });
 
-      // 2. Notify Employer
-      await addDoc(collection(db, "notifications"), {
-        userId: job.employerId,
-        title: "New Application",
-        message: `An applicant has applied for your ${job.title} position.`,
-        isRead: false,
-        createdAt: serverTimestamp()
-      });
+    // 2. INCREMENT THE APPLICANT COUNT IN THE JOBS COLLECTION
+    // This is the part that updates JobTable.jsx
+    const jobRef = doc(db, "jobs", job.id);
+    await updateDoc(jobRef, {
+      applicantCount: increment(1)
+    });
 
-      alert("Application sent successfully!");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to apply. Please try again.");
-    }
-  };
+    // 3. Notify Employer
+    await addDoc(collection(db, "notifications"), {
+      userId: job.employerId,
+      title: "New Application",
+      message: `${user.displayName || 'Someone'} applied for ${job.title}`,
+      isRead: false,
+      createdAt: serverTimestamp()
+    });
+
+    alert("Application sent successfully!");
+  } catch (err) {
+    console.error(err);
+    alert("Failed to apply: " + err.message);
+  }
+};
 
   // --- FUNCTIONALITY: INQUIRY ---
   const handleInquiry = async (job) => {

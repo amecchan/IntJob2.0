@@ -12,6 +12,7 @@ const JobTable = ({ limit = null, onEdit, onDelete, onView }) => {
   useEffect(() => {
     if (!user) return;
 
+    // We listen to the "jobs" collection
     const jobsRef = collection(db, "jobs");
     const q = query(
       jobsRef, 
@@ -21,7 +22,8 @@ const JobTable = ({ limit = null, onEdit, onDelete, onView }) => {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setJobs(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+      const jobsData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      setJobs(jobsData);
       setLoading(false);
     }, (error) => {
       console.error("Firestore Error:", error);
@@ -59,9 +61,6 @@ const JobTable = ({ limit = null, onEdit, onDelete, onView }) => {
           jobs.map((job) => (
             <tr key={job.id} className="modern-row">
               <td>
-                {/* Clickable Title Area: 
-                   Triggers the preview modal via onView 
-                */}
                 <div 
                   className="flex flex-col cursor-pointer group"
                   onClick={() => onView && onView(job)}
@@ -76,7 +75,8 @@ const JobTable = ({ limit = null, onEdit, onDelete, onView }) => {
               </td>
               
               <td className="text-center">
-                <span className="bg-slate-100 px-3 py-1 rounded-full text-xs font-bold">
+                {/* Visual Fix: Highlighting the count so you can see changes clearly */}
+                <span className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-xs font-black border border-indigo-100 min-w-[30px] inline-block">
                   {job.applicantCount || 0}
                 </span>
               </td>
@@ -99,7 +99,7 @@ const JobTable = ({ limit = null, onEdit, onDelete, onView }) => {
                     className="icon-btn hover:text-indigo-600"
                     title="Edit Post"
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevents triggering onView
+                      e.stopPropagation();
                       onEdit(job);
                     }}
                   >
@@ -109,7 +109,7 @@ const JobTable = ({ limit = null, onEdit, onDelete, onView }) => {
                     className="icon-btn hover:text-red-500"
                     title="Delete Post"
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevents triggering onView
+                      e.stopPropagation();
                       onDelete(job.id, job.title);
                     }}
                   >

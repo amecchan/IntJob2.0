@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../services/firebase';
 import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
-import { Megaphone } from 'lucide-react';
+import { Megaphone, Mail, Handshake, Building2 } from 'lucide-react';
+import '../../styles/InfoSection.css'; // Make sure to create this file
 
 const InfoSection = () => {
   const [announcements, setAnnouncements] = useState([]);
 
-  // Fetch latest 3 announcements from Firebase
   useEffect(() => {
     const q = query(
       collection(db, "announcements"), 
@@ -22,47 +22,47 @@ const InfoSection = () => {
   }, []);
 
   return (
-    <main className="container">
+    <main className="info-container">
       {/* How it Works Section */}
-      <section id="how" style={{ padding: '60px 0' }}>
+      <section id="how" className="info-section">
         <h2 className="section-title">How It Works</h2>
-        <div className="steps">
-          <div className="card">
+        <div className="steps-grid">
+          <div className="info-card step-card">
             <span className="step-number">01</span>
-            <strong>Create your profile</strong>
-            <p className="muted">Add your course, technical strengths, and soft skills to stand out.</p>
+            <strong className="card-label">Create your profile</strong>
+            <p className="muted-text">Add your course, technical strengths, and soft skills to stand out.</p>
           </div>
-          <div className="card">
+          <div className="info-card step-card">
             <span className="step-number">02</span>
-            <strong>Get suggestions</strong>
-            <p className="muted">Our matching algorithm finds roles specifically aligned to your profile.</p>
+            <strong className="card-label">Get suggestions</strong>
+            <p className="muted-text">Our matching algorithm finds roles specifically aligned to your profile.</p>
           </div>
-          <div className="card">
+          <div className="info-card step-card">
             <span className="step-number">03</span>
-            <strong>Check requirements</strong>
-            <p className="muted">Instantly see if experience is needed or if it's entry-level friendly.</p>
+            <strong className="card-label">Check requirements</strong>
+            <p className="muted-text">Instantly see if experience is needed or if it's entry-level friendly.</p>
           </div>
-          <div className="card">
+          <div className="info-card step-card">
             <span className="step-number">04</span>
-            <strong>Apply</strong>
-            <p className="muted">Submit your application and track your hiring status in one place.</p>
+            <strong className="card-label">Apply</strong>
+            <p className="muted-text">Submit your application and track your hiring status in one place.</p>
           </div>
         </div>
       </section>
 
-      {/* NEW: Announcements Section */}
+      {/* Announcements Section */}
       {announcements.length > 0 && (
-        <section id="updates" style={{ padding: '40px 0' }}>
-          <h2 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}>
-            <Megaphone size={24} color="#2563eb" /> Latest Updates
+        <section id="updates" className="info-section updates-section">
+          <h2 className="section-title announcement-header">
+            <Megaphone className="icon-blue" size={28} /> Latest Updates
           </h2>
-          <div className="grid">
+          <div className="info-grid">
             {announcements.map((item) => (
-              <div key={item.id} className="card" style={{ borderLeft: '4px solid #2563eb' }}>
-                <small style={{ color: '#64748b' }}>
+              <div key={item.id} className="info-card announcement-card">
+                <small className="date-text">
                   {item.createdAt?.toDate().toLocaleDateString() || "Just now"}
                 </small>
-                <p style={{ marginTop: '10px', fontWeight: '500' }}>{item.text}</p>
+                <p className="announcement-text">{item.text}</p>
               </div>
             ))}
           </div>
@@ -70,20 +70,23 @@ const InfoSection = () => {
       )}
 
       {/* Contact Section */}
-      <section id="contact" style={{ padding: '60px 0' }}>
+      <section id="contact" className="info-section">
         <h2 className="section-title">Get in Touch</h2>
-        <div className="grid">
-          <div className="card">
-            <strong>Email Support</strong>
-            <p className="muted">hello@Intjobs.app</p>
+        <div className="info-grid">
+          <div className="info-card contact-card">
+            <Mail className="icon-blue" size={20} />
+            <strong className="card-label">Email Support</strong>
+            <p className="muted-text">hello@Intjobs.app</p>
           </div>
-          <div className="card">
-            <strong>Partnerships</strong>
-            <p className="muted">tcc.ccs.official@gmail.com</p>
+          <div className="info-card contact-card">
+            <Handshake className="icon-blue" size={20} />
+            <strong className="card-label">Partnerships</strong>
+            <p className="muted-text">tcc.ccs.official@gmail.com</p>
           </div>
-          <div className="card">
-            <strong>Employer Inquiries</strong>
-            <p className="muted">talent@Intjobs.app</p>
+          <div className="info-card contact-card">
+            <Building2 className="icon-blue" size={20} />
+            <strong className="card-label">Employer Inquiries</strong>
+            <p className="muted-text">talent@Intjobs.app</p>
           </div>
         </div>
       </section>

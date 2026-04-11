@@ -1,234 +1,162 @@
-import React, { useState, useEffect } from 'react';
-import { Cross2Icon, CheckCircledIcon, EyeOpenIcon, EyeNoneIcon, CheckIcon, CheckboxIcon } from '@radix-ui/react-icons';
+import React, { useState } from 'react';
+import { auth } from '../../services/firebase'; 
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { Cross2Icon, CheckCircledIcon, EnvelopeClosedIcon } from '@radix-ui/react-icons';
 
-const ForgotModal = ({ 
-  isOpen, onClose, step, setStep, verificationCode, setVerificationCode, 
-  newPassword, setNewPassword, confirmPassword, setConfirmPassword, 
-  error, setError, showPassword, setShowPassword, onBackToLogin 
-}) => {
+const ForgotModal = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [resendTimer, setResendTimer] = useState(0);
-  
-  // State for the requirements checklist
-  const [checks, setChecks] = useState({
-    length: false,
-    upper: false,
-    number: false,
-    special: false
-  });
-
-  const [strength, setStrength] = useState({ label: '', color: '#d1d5db', width: '0%' });
-
-  useEffect(() => {
-    let interval;
-    if (resendTimer > 0) {
-      interval = setInterval(() => setResendTimer((prev) => prev - 1), 1000);
-    }
-    return () => clearInterval(interval);
-  }, [resendTimer]);
+  const [error, setError] = useState("");
+  const [step, setStep] = useState(1); // 1: Input, 2: Success State
 
   if (!isOpen) return null;
 
-  const validatePassword = (pass) => {
-    const newChecks = {
-      length: pass.length >= 8,
-      upper: /[A-Z]/.test(pass),
-      number: /[0-9]/.test(pass),
-      special: /[^A-Za-z0-9]/.test(pass)
-    };
-    setChecks(newChecks);
-
-    let score = Object.values(newChecks).filter(Boolean).length;
-
-    const levels = [
-      { label: 'Weak', color: '#ef4444', width: '25%' },
-      { label: 'Fair', color: '#f97316', width: '50%' },
-      { label: 'Good', color: '#eab308', width: '75%' },
-      { label: 'Strong', color: '#22c55e', width: '100%' }
-    ];
-    setStrength(pass ? (levels[score - 1] || levels[0]) : { label: '', color: '#d1d5db', width: '0%' });
-  };
-
-  const handleSendCode = async (e) => {
-    if (e) e.preventDefault();
+  const handleSendResetEmail = async (e) => {
+    e.preventDefault();
     setLoading(true);
     setError("");
+
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/password-reset-request/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      if (response.ok) {
-        setStep(2);
-        setResendTimer(60);
+      // This sends the email to the user with the link to your new ResetPassword page
+      await sendPasswordResetEmail(auth, email);
+      setStep(2);
+    } catch (err) {
+      console.error("Firebase Error:", err.code);
+      if (err.code === 'auth/user-not-found') {
+        setError("We couldn't find an account with that email address.");
+      } else if (err.code === 'auth/invalid-email') {
+        setError("Please enter a valid email format.");
+      } else if (err.code === 'auth/too-many-requests') {
+        setError("Too many requests. Please try again later.");
       } else {
-        setError("Email not found.");
+        setError("An error occurred. Please check your connection.");
       }
-    } catch (err) { setError("Server error."); }
-    finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
-
-  const handleUpdatePassword = async (e) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) { setError("Passwords do not match."); return; }
-    setLoading(true);
-    try {
-      const res = await fetch("http://127.0.0.1:8000/api/password-reset-confirm/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp: verificationCode, new_password: newPassword }),
-      });
-      if (res.ok) {
-        alert("Success!");
-        onBackToLogin();
-      } else { setError("Invalid or expired code."); }
-    } catch (err) { setError("Connection error."); }
-    finally { setLoading(false); }
-  };
-
-  // Helper to check if passwords match
-  const isMatch = newPassword && confirmPassword && newPassword === confirmPassword;
 
   const styles = {
-    overlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, fontFamily: "'Poppins', sans-serif" },
-    content: { backgroundColor: 'white', padding: '40px', borderRadius: '16px', width: '100%', maxWidth: '400px', position: 'relative' },
-    input: { width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', marginTop: '8px', outline: 'none' },
-    btn: { width: '100%', padding: '14px', backgroundColor: '#0051d3', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', marginTop: '20px', cursor: 'pointer' },
-    requirement: (isValid) => ({
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      fontSize: '12px',
-      color: isValid ? '#22c55e' : '#9ca3af',
-      marginTop: '4px',
-      transition: 'color 0.2s ease'
-    })
+    overlay: { 
+      position: 'fixed', 
+      inset: 0, 
+      backdropFilter: 'blur(4px)',
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      zIndex: 9999, 
+      fontFamily: "'Poppins', sans-serif" 
+    },
+    content: { 
+      backgroundColor: 'white', 
+      padding: '40px', 
+      borderRadius: '24px', 
+      width: '90%', 
+      maxWidth: '420px', 
+      position: 'relative',
+      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+    },
+    input: { 
+      width: '100%', 
+      padding: '14px', 
+      borderRadius: '12px', 
+      border: '2px solid #e5e7eb', 
+      marginTop: '8px', 
+      outline: 'none',
+      fontSize: '15px',
+      transition: 'border-color 0.2s'
+    },
+    btn: { 
+      width: '100%', 
+      padding: '16px', 
+      backgroundColor: '#02176d', 
+      color: 'white', 
+      border: 'none', 
+      borderRadius: '12px', 
+      fontWeight: '700', 
+      marginTop: '24px', 
+      cursor: 'pointer', 
+      fontSize: '16px',
+      transition: 'all 0.2s' 
+    },
+    secondaryBtn: { 
+      width: '100%', 
+      padding: '14px', 
+      backgroundColor: 'transparent', 
+      color: '#02176d', 
+      border: 'none', 
+      borderRadius: '12px', 
+      fontWeight: '600', 
+      marginTop: '10px', 
+      cursor: 'pointer',
+      fontSize: '14px'
+    }
   };
 
   return (
-    <div style={styles.overlay}>
+    <div style={styles.overlay} onClick={onClose}>
       <div style={styles.content} onClick={(e) => e.stopPropagation()}>
-        <button style={{ position: 'absolute', top: '15px', right: '15px', border: 'none', background: 'none' }} onClick={onClose}><Cross2Icon /></button>
+        <button 
+          style={{ position: 'absolute', top: '20px', right: '20px', border: 'none', background: '#f3f4f6', padding: '8px', borderRadius: '50%', cursor: 'pointer' }} 
+          onClick={onClose}
+        >
+          <Cross2Icon width={20} height={20} />
+        </button>
         
-        {step === 1 && (
-          <form onSubmit={handleSendCode}>
-            <h2 style={{ fontWeight: 'bold', fontSize: '22px' }}>Forgot Password?</h2>
-            <input type="email" placeholder="Email Address" style={styles.input} value={email} onChange={(e) => setEmail(e.target.value)} required />
-            {error && <p style={{ color: 'red', fontSize: '12px', marginTop: '10px' }}>{error}</p>}
-            <button type="submit" style={styles.btn} disabled={loading}>Send Code</button>
-          </form>
-        )}
-
-        {step === 2 && (
-             <div style={{ textAlign: 'center' }}>
-             <CheckCircledIcon width={50} height={50} style={{ color: '#10b981', marginBottom: '15px' }} />
-             <h2 style={{ fontWeight: 'bold' }}>Email Sent!</h2>
-             <p style={{ color: '#666', fontSize: '14px' }}>Check <b>{email}</b> for your code.</p>
-             <button style={styles.btn} onClick={() => setStep(3)}>Enter Code</button>
-           </div>
-        )}
-
-        {step === 3 && (
-            <div style={{ textAlign: 'center' }}>
-            <h2 style={{ fontWeight: 'bold' }}>Verify Identity</h2>
+        {step === 1 ? (
+          <form onSubmit={handleSendResetEmail}>
+            <div style={{ marginBottom: '24px' }}>
+                <div style={{ backgroundColor: '#eef2ff', width: '50px', height: '50px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                    <EnvelopeClosedIcon width={24} height={24} color="#02176d" />
+                </div>
+                <h2 style={{ fontWeight: '900', fontSize: '26px', color: '#02176d', lineHeight: '1.2' }}>Reset Password</h2>
+                <p style={{ fontSize: '14px', color: '#6b7280', marginTop: '8px' }}>
+                    Enter the email associated with your account and we'll send a secure link to reset your password.
+                </p>
+            </div>
+            
+            <label style={{ fontSize: '12px', fontWeight: '800', color: '#02176d', letterSpacing: '0.05em' }}>EMAIL ADDRESS</label>
             <input 
-              type="text" 
-              style={{ ...styles.input, textAlign: 'center', fontSize: '24px', letterSpacing: '8px' }} 
-              maxLength="6" 
-              value={verificationCode}
-              onChange={(e) => setVerificationCode(e.target.value)}
+              type="email" 
+              placeholder="name@company.com" 
+              style={styles.input} 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              onFocus={(e) => e.target.style.borderColor = '#02176d'}
+              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              required 
             />
-            {error && <p style={{ color: 'red', fontSize: '12px', marginTop: '5px' }}>{error}</p>}
-            <button style={styles.btn} onClick={() => setStep(4)}>Verify Code</button>
-            <br />
+            
+            {error && (
+                <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '500' }}>
+                    <span>⚠️</span> {error}
+                </div>
+            )}
+            
             <button 
-              type="button" 
-              style={{ background: 'none', border: 'none', color: resendTimer > 0 ? '#9ca3af' : '#0051d3', fontSize: '13px', marginTop: '10px', cursor: 'pointer' }} 
-              disabled={resendTimer > 0} 
-              onClick={handleSendCode}
+              type="submit" 
+              style={{ ...styles.btn, opacity: loading ? 0.7 : 1 }} 
+              disabled={loading}
             >
-              {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend Code"}
+              {loading ? "Processing..." : "Send Reset Link"}
+            </button>
+          </form>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '10px 0' }}>
+            <div style={{ backgroundColor: '#ecfdf5', width: '70px', height: '70px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+              <CheckCircledIcon width={40} height={40} style={{ color: '#10b981' }} />
+            </div>
+            <h2 style={{ fontWeight: '900', fontSize: '26px', color: '#02176d' }}>Check your inbox</h2>
+            <p style={{ color: '#6b7280', fontSize: '15px', marginTop: '12px', lineHeight: '1.6' }}>
+              We've sent a password reset link to <br/><b style={{ color: '#02176d' }}>{email}</b>. Please check your email to continue.
+            </p>
+            
+            <button style={styles.btn} onClick={onClose}>Back to Login</button>
+            
+            <button style={styles.secondaryBtn} onClick={() => setStep(1)}>
+              Didn't get the email? Try again
             </button>
           </div>
-        )}
-
-        {step === 4 && (
-          <form onSubmit={handleUpdatePassword}>
-            <h2 style={{ fontWeight: 'bold' }}>Reset Password</h2>
-            
-            <div style={{ position: 'relative' }}>
-              <input 
-                type={showPassword ? "text" : "password"} 
-                placeholder="New Password" 
-                style={styles.input} 
-                onChange={(e) => {setNewPassword(e.target.value); validatePassword(e.target.value);}} 
-                required 
-              />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '10px', top: '20px', border: 'none', background: 'none' }}>
-                {showPassword ? <EyeOpenIcon /> : <EyeNoneIcon />}
-              </button>
-            </div>
-
-            {/* Strength Meter & Checklist */}
-            {newPassword && (
-              <div style={{ marginTop: '10px' }}>
-                <div style={{ height: '4px', width: '100%', backgroundColor: '#eee', borderRadius: '2px', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: strength.width, backgroundColor: strength.color, transition: '0.3s' }} />
-                </div>
-                <span style={{ fontSize: '11px', color: strength.color, fontWeight: 'bold' }}>{strength.label}</span>
-
-                <div style={{ marginTop: '10px' }}>
-                    <div style={styles.requirement(checks.length)}>{checks.length ? <CheckIcon /> : <div style={{width:15}}/>} At least 8 characters</div>
-                    <div style={styles.requirement(checks.upper)}>{checks.upper ? <CheckIcon /> : <div style={{width:15}}/>} At least one uppercase letter</div>
-                    <div style={styles.requirement(checks.number)}>{checks.number ? <CheckIcon /> : <div style={{width:15}}/>} At least one number</div>
-                    <div style={styles.requirement(checks.special)}>{checks.special ? <CheckIcon /> : <div style={{width:15}}/>} At least one special character</div>
-                </div>
-              </div>
-            )}
-
-            <div style={{ position: 'relative', marginTop: '15px' }}>
-                <input 
-                    type="password" 
-                    placeholder="Confirm Password" 
-                    style={styles.input} 
-                    onChange={(e) => setConfirmPassword(e.target.value)} 
-                    required 
-                />
-                {/* Match Indicator Checkmark */}
-                {isMatch && (
-                    <div style={{ position: 'absolute', right: '10px', top: '20px', color: '#22c55e' }}>
-                        <CheckCircledIcon />
-                    </div>
-                )}
-            </div>
-            
-            {/* Match Status Message */}
-            {confirmPassword && (
-              <p style={{ 
-                fontSize: '11px', 
-                color: isMatch ? '#22c55e' : '#ef4444', 
-                marginTop: '5px', 
-                fontWeight: '600',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}>
-                {isMatch ? "Passwords match!" : "Passwords do not match yet"}
-              </p>
-            )}
-            
-            {error && <p style={{ color: 'red', fontSize: '12px', marginTop: '10px' }}>{error}</p>}
-            
-            <button 
-                type="submit" 
-                style={styles.btn} 
-                disabled={loading || strength.width !== '100%' || !isMatch}
-            >
-              Update Password
-            </button>
-          </form>
         )}
       </div>
     </div>

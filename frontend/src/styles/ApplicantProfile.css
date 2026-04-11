@@ -2,13 +2,13 @@
 @import "tailwindcss";
 
 .profile-dashboard-inset {
-  @apply w-full min-h-screen p-6 md:p-10;
-  /* This margin-top ensures it sits below the blue nav if it's fixed */
-  margin-top: 20px; 
+  @apply w-full min-h-screen p-4 md:p-8 lg:p-10;
+  /* Adjusting margin to ensure it clears the TopNav without being too gapped */
+  margin-top: 10px; 
 }
 
 .profile-top-bar {
-  @apply flex justify-between items-center mb-10;
+  @apply flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6;
 }
 
 .profile-back-link {
@@ -17,101 +17,114 @@
 }
 
 .profile-main-layout {
-  @apply grid grid-cols-1 xl:grid-cols-4 gap-8;
+  @apply grid grid-cols-1 xl:grid-cols-4 gap-8 items-start;
 }
 
-/* Primary Card (Takes 3 columns on desktop) */
+/* Primary Card */
 .profile-card-primary {
   @apply xl:col-span-3 bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden;
 }
 
 .profile-card-banner {
-  @apply h-32 bg-gradient-to-r from-indigo-600 to-indigo-400;
+  @apply h-32 md:h-40 bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-400;
 }
 
 .profile-card-body {
-  @apply px-10 pb-12;
+  @apply px-6 md:px-12 pb-12;
 }
 
 /* Avatar & Identity */
 .profile-avatar-stack {
-  @apply flex items-end gap-6 -mt-12 mb-8;
+  @apply flex flex-col md:flex-row items-center md:items-end gap-6 -mt-14 md:-mt-16 mb-8 text-center md:text-left;
 }
 
 .profile-avatar-large {
-  @apply w-28 h-28 bg-white rounded-3xl p-1 shadow-xl flex items-center justify-center 
-         text-2xl font-black text-indigo-600 border-4 border-white;
-  background-color: #f8fafc;
+  @apply w-28 h-28 md:w-32 md:h-32 bg-slate-50 rounded-[2rem] shadow-2xl flex items-center justify-center 
+         text-3xl font-black text-indigo-600 border-8 border-white;
 }
 
 .profile-display-name {
-  @apply text-3xl font-black text-slate-800 tracking-tight;
+  @apply text-3xl md:text-4xl font-black text-slate-800 tracking-tight leading-tight;
 }
 
 .profile-display-role {
-  @apply text-indigo-500 font-bold;
+  @apply text-indigo-500 font-extrabold text-sm md:text-base;
 }
 
 .profile-id-tag {
-  @apply inline-block mt-2 px-2 py-1 bg-slate-50 text-slate-400 text-[9px] font-black rounded border border-slate-100;
+  @apply inline-block mt-2 px-3 py-1 bg-slate-100 text-slate-500 text-[9px] font-black rounded-full border border-slate-200 uppercase tracking-tighter;
 }
 
-/* Layout Grid */
+/* Layout Grid Content */
 .profile-info-grid {
-  @apply space-y-10 mt-10;
+  @apply space-y-12 mt-12;
 }
 
 .profile-label {
-  @apply text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 block;
+  @apply text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 block;
 }
 
 .profile-text-content {
-  @apply text-slate-600 leading-relaxed font-medium;
+  @apply text-slate-600 leading-relaxed font-medium text-sm md:text-base max-w-3xl;
 }
 
 /* Skills */
 .profile-skill-wrap {
-  @apply flex flex-wrap gap-2;
+  @apply flex flex-wrap gap-2 md:gap-3;
 }
 
 .profile-skill-chip {
-  @apply px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold border border-indigo-100;
+  @apply px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold border border-indigo-100 
+         hover:bg-indigo-600 hover:text-white transition-colors cursor-default;
 }
 
 /* Sidebar Styling */
 .profile-card-sidebar {
-  @apply xl:col-span-1 space-y-6;
+  @apply xl:col-span-1 space-y-6 sticky top-24;
 }
 
 .profile-contact-box {
-  @apply bg-slate-50 rounded-[2rem] p-8 border border-slate-100;
+  @apply bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100 shadow-inner;
+}
+
+.profile-contact-links {
+  @apply space-y-4;
 }
 
 .contact-item {
-  @apply flex items-center gap-3 text-slate-600 font-bold text-xs mb-4 last:mb-0;
+  @apply flex items-center gap-4 text-slate-600 font-bold text-xs truncate;
 }
 
 .contact-item svg {
-  @apply text-indigo-400;
+  @apply text-indigo-500 w-4 h-4 shrink-0;
 }
 
-/* Buttons */
+/* Buttons & Actions */
+.profile-quick-actions {
+  @apply flex flex-wrap gap-3 w-full md:w-auto;
+}
+
+/* Manage Status Button (Specific Blue style) */
+.profile-btn-status {
+  @apply flex items-center justify-center gap-2 px-5 py-3 bg-indigo-50 text-indigo-600 border border-indigo-200 
+         rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all;
+}
+
 .profile-btn-primary {
-  @apply flex items-center gap-2 px-6 py-3.5 bg-indigo-600 text-white rounded-2xl 
-         font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-100;
+  @apply flex items-center justify-center gap-2 px-5 py-3 bg-indigo-600 text-white rounded-2xl 
+         font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-100 
+         hover:bg-indigo-700 hover:-translate-y-0.5 transition-all active:translate-y-0;
 }
 
 .profile-btn-secondary {
-  @apply flex items-center gap-2 px-6 py-3.5 bg-white border border-slate-100 
-         text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest;
+  @apply flex items-center justify-center gap-2 px-5 py-3 bg-white border border-slate-200 
+         text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest
+         hover:bg-slate-50 hover:border-slate-300 transition-all;
 }
 
-.profile-quick-actions {
-  @apply flex gap-3;
-}
-
+/* Dividers & Stats */
 .profile-section-divider {
-  @apply h-[1px] w-full bg-slate-50 mt-8;
+  @apply h-[1px] w-full bg-slate-100 mt-8;
 }
 
 .profile-stat-blocks {
@@ -119,13 +132,22 @@
 }
 
 .stat-mini-card {
-  @apply p-5 bg-white border border-slate-100 rounded-2xl text-center;
+  @apply p-6 bg-white border border-slate-100 rounded-[2rem] text-center shadow-sm;
 }
 
 .stat-mini-label {
-  @apply block text-[8px] font-black text-slate-300 uppercase tracking-widest mb-1;
+  @apply block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2;
 }
 
 .stat-mini-value {
-  @apply block text-xs font-black text-slate-700;
+  @apply block text-sm font-black text-slate-800;
+}
+
+/* Loading/Error States */
+.profile-loading-state, .profile-error-state {
+  @apply flex flex-col items-center justify-center min-h-[60vh] text-slate-400 gap-4;
+}
+
+.profile-loading-state p {
+  @apply text-[10px] font-black uppercase tracking-widest;
 }

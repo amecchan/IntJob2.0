@@ -3,8 +3,8 @@ import {
   ShieldCheck, ShieldAlert, History, UserX, 
   Search, Lock, MapPin, Clock, AlertTriangle, RefreshCw 
 } from 'lucide-react';
-import '../styles/AdminDash.css';
-import '../styles/AdSecurity.css';
+import '../../styles/Admin/AdminDash.css';
+import '../../styles/Admin/AdSecurity.css';
 
 const AdSecurity = () => {
   const [activeTab, setActiveTab] = useState(0);

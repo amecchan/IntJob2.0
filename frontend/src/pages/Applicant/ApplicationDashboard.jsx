@@ -11,7 +11,7 @@ import {
   HamburgerMenuIcon, MagnifyingGlassIcon, BellIcon, HomeIcon, 
   LayersIcon, GearIcon, ExitIcon, EnvelopeClosedIcon, 
   CheckIcon, PersonIcon, FileTextIcon, BackpackIcon,
-  DotFilledIcon
+  DotFilledIcon, CheckCircledIcon,
 } from '@radix-ui/react-icons';
 
 // Page View Imports
@@ -42,6 +42,79 @@ const ApplicationDashboard = () => {
 
   const navigate = useNavigate();
   const notifRef = useRef(null);
+
+  // For Job and Insights and Recommendations"
+  const [recommendedJobs, setRecommendedJobs] = useState([]);
+const [appStats, setAppStats] = useState({ total: 0, pending: 0, accepted: 0 });
+const [insights, setInsights] = useState({ matchRate: 0, message: "" });
+
+useEffect(() => {
+  let unsubNotifs = null;
+  let unsubJobs = null;
+  let unsubApps = null;
+
+  const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const userDocRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userDocRef);
+      
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        setUserData(data);
+        const nameParts = data.fullName ? data.fullName.trim().split(" ") : ["Guest"];
+        setFirstName(nameParts[0]);
+
+        // 1. Listen for Recommended Jobs (Real-time)
+        const jobsQuery = query(collection(db, "jobs"), where("status", "==", "open"));
+        unsubJobs = onSnapshot(jobsQuery, (snapshot) => {
+          const allJobs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          const userSkills = data.selectedSkills || [];
+          
+          const matches = allJobs.filter(job => 
+            job.skillsRequired?.some(s => userSkills.includes(s))
+          );
+          setRecommendedJobs(matches.slice(0, 3));
+
+          // 2. Generate Insights based on Survey/Profile
+          const rate = matches.length > 0 ? Math.min(matches.length * 20, 100) : 0;
+          setInsights({
+            matchRate: rate,
+            message: rate > 50 ? "Your profile is highly competitive!" : "Consider adding more skills to improve matches."
+          });
+        });
+
+        // 3. Listen for Application Progress
+        const appsQuery = query(collection(db, "applications"), where("userId", "==", user.uid));
+        unsubApps = onSnapshot(appsQuery, (snapshot) => {
+          const apps = snapshot.docs.map(d => d.data());
+          setAppStats({
+            total: apps.length,
+            pending: apps.filter(a => a.status === "pending").length,
+            accepted: apps.filter(a => a.status === "accepted").length
+          });
+        });
+
+        // 4. Notifications (Existing logic)
+        const qNotif = query(collection(db, "notifications"), where("userId", "==", user.uid), orderBy("createdAt", "desc"));
+        unsubNotifs = onSnapshot(qNotif, (snapshot) => {
+          const notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setNotifications(notifs);
+          setHasUnread(notifs.some(n => !n.read));
+        });
+      }
+      setLoading(false);
+    } else {
+      navigate("/");
+    }
+  });
+
+  return () => {
+    unsubscribeAuth();
+    if (unsubNotifs) unsubNotifs();
+    if (unsubJobs) unsubJobs();
+    if (unsubApps) unsubApps();
+  };
+}, [navigate]);
 
   // 1. Firebase Auth & Real-time Data
   useEffect(() => {
@@ -246,34 +319,59 @@ const ApplicationDashboard = () => {
               default:
                 return (
                   <div className="dashboard-home">
-                    <header className="home-hero">
-                      <h1>Welcome back, {firstName}</h1>
-                      <p>Stay updated with your latest job match opportunities.</p>
-                    </header>
+                  <header className="home-hero">
+                    <h1>Welcome back, {firstName}</h1>
+                    <p>Here’s what’s happening with your career search today.</p>
+                  </header>
 
                     <section className="info-grid">
-                      <div className="card stat-card">
-                        <h3>Your Registered Skills</h3>
-                        <div className="skill-tags">
-                          {userData?.selectedSkills?.length > 0 ? (
-                            userData.selectedSkills.map(skill => (
-                              <span key={skill} className="skill-pill">{skill}</span>
-                            ))
-                          ) : (
-                            <p className="text-muted">No skills listed yet.</p>
-                          )}
+                      {/* 1. PROGRESS CARD */}
+                      <div className="card stat-card progress-card-blue"> {/* Changed class name here */}
+                        <h3>Application Progress</h3>
+                        <div className="progress-stats">
+                          <div className="stat-item">
+                            <span className="stat-num">{appStats.total}</span>
+                            <span className="stat-label">Total</span>
+                          </div>
+                          <div className="stat-item">
+                            <span className="stat-num pending">{appStats.pending}</span>
+                            <span className="stat-label">Pending</span>
+                          </div>
                         </div>
                       </div>
+
+                      {/* 3. SKILLS CARD */}
+                        <div className="card stat-card featured-card">
+                          <h3>Registered Skills</h3>
+                          <div className="skill-tags">
+                            {userData?.selectedSkills?.map(skill => (
+                              <span key={skill} className="skill-pill">{skill}</span>
+                            ))}
+                          </div>
+                        </div>
                     </section>
                     
                     <h2 className="section-heading">Recommended for You</h2>
-                    <div className="jobs-layout-grid">
-                      <div className="empty-state-card">
-                        <BackpackIcon />
-                        <p>No direct matches found. Try exploring <strong>Browse Jobs</strong> to find your next role.</p>
+                      <div className="jobs-layout-grid">
+                        {recommendedJobs.length > 0 ? (
+                          recommendedJobs.map(job => (
+                            <div key={job.id} className="card job-card">
+                              <h4>{job.title}</h4>
+                              <p>{job.companyName}</p>
+                              <div className="job-tags">
+                                {job.skillsRequired?.slice(0, 2).map(s => <span className="mini-tag" key={s}>{s}</span>)}
+                              </div>
+                              <button className="btn-view" onClick={() => setCurrentView('categories')}>View Job</button>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="empty-state-card">
+                            <BackpackIcon />
+                            <p>No new matches. Try updating your skills!</p>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
                 );
             }
           })()}
