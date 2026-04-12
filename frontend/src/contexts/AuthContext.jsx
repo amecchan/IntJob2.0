@@ -7,22 +7,24 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Helper function to fetch Firestore data
-  // We make this separate so we can call it manually if needed
   const fetchUserProfile = async (firebaseUser) => {
     try {
       const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
       
       if (userDoc.exists()) {
         const userData = userDoc.data();
+        const role = userData.role || 'applicant';
+        
         setUser({
           ...firebaseUser,
           ...userData,
-          // Ensure role is always there for your ProtectedRoute checks
-          role: userData.role || 'applicant' 
+          role: role
         });
+        setUserRole(role);
         return true;
       }
       return false;
@@ -36,21 +38,26 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setLoading(true);
       if (firebaseUser) {
-        // Try to fetch profile
-        const success = await fetchUserProfile(firebaseUser);
+        let success = await fetchUserProfile(firebaseUser);
         
-        // RACE CONDITION FIX: 
-        // If Firestore isn't ready yet (common during signup), 
-        // wait 1 second and try one more time.
         if (!success) {
-          setTimeout(async () => {
-            await fetchUserProfile(firebaseUser);
-            setLoading(false);
-          }, 1000);
-          return; // Exit early to let the timeout finish
+          let retries = 0;
+          const maxRetries = 3;
+          
+          const retryInterval = setInterval(async () => {
+            retries++;
+            success = await fetchUserProfile(firebaseUser);
+            
+            if (success || retries >= maxRetries) {
+              clearInterval(retryInterval);
+              setLoading(false);
+            }
+          }, 1500);
+          return; 
         }
       } else {
         setUser(null);
+        setUserRole(null);
       }
       setLoading(false);
     });
@@ -58,9 +65,14 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
+  // --- REMOVED THE ISVERIFIED EFFECT FROM HERE ---
+  // That logic belongs in VerifyEmail.jsx, not in the AuthContext.
+
   const logout = async () => {
     try {
       await signOut(auth);
+      setUser(null);
+      setUserRole(null);
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -73,18 +85,26 @@ export const AuthProvider = ({ children }) => {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
+  const refreshUser = async () => {
+    if (auth.currentUser) {
+      await auth.currentUser.reload();
+      return await fetchUserProfile(auth.currentUser);
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
+      userRole, 
       logout, 
       getInitials, 
       loading,
-      refreshUser: () => auth.currentUser && fetchUserProfile(auth.currentUser) 
+      refreshUser 
     }}>
-      {/* Show nothing or a loading spinner while checking auth */}
       {!loading ? children : (
-        <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
           <div className="animate-spin" style={{ width: '40px', height: '40px', border: '4px solid #f3f3f3', borderTop: '4px solid #0051d3', borderRadius: '50%' }}></div>
+          <p style={{ color: '#0051d3', fontWeight: '600', fontFamily: 'sans-serif' }}>Loading Profile...</p>
         </div>
       )}
       <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } .animate-spin { animation: spin 1s linear infinite; }`}</style>

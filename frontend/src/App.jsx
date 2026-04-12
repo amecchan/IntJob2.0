@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './components/DashboardLayout'; 
+import RoleRedirect from './pages/RoleRedirect'; 
 
 // --- PUBLIC PAGES ---
 import Landing from './pages/Landing'; 
@@ -16,8 +17,6 @@ import JobManagement from './pages/Employer/JobManagement';
 import JobApplicants from './pages/Employer/JobApplicants';
 import Messages from './pages/Employer/Messages';
 import CompanyProfile from './pages/Employer/CompanyProfile';
-
-// Employer Settings
 import SettingsLayout from './pages/Employer/Settings/SettingsLayout';
 import ProfileInfo from './pages/Employer/Settings/ProfileInfo';
 import PasswordSecurity from './pages/Employer/Settings/PasswordSecurity';
@@ -26,7 +25,7 @@ import Preferences from './pages/Employer/Settings/Preferences';
 
 // --- APPLICANT PAGES ---
 import ApplicationDashboard from './pages/Applicant/ApplicationDashboard';
-import AppliResume from './pages/Applicant/AppliResume'; // Your Resume Builder
+import AppliResume from './pages/Applicant/AppliResume'; 
 import Survey from './pages/Applicant/Survey'; 
 
 // --- ADMIN PAGES ---
@@ -48,24 +47,22 @@ function App() {
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
+      {/* --- CENTRAL REDIRECT HUB --- */}
+      {/* This is the URL you use after login or email verification */}
+      <Route path="/dashboard" element={<RoleRedirect />} />
+
       {/* --- PROTECTED EMPLOYER ROUTES --- */}
       <Route element={<ProtectedRoute allowedRole="employer" />}>
         <Route element={<DashboardLayout />}>
           <Route path="/employer/dashboard" element={<Dashboard />} />
-          
-          {/* Applicant Tracking */}
           <Route path="/employer/dashboard/view-applicants" element={<ViewApplicants />} />
           <Route path="/employer/dashboard/applicants/:applicantId" element={<ApplicantProfile />} />
           <Route path="/employer/dashboard/applicants/:applicantId/status" element={<ApplicantStatusManagement />} />
-
-          {/* Job Management */}
           <Route path="/employer/dashboard/jobs" element={<JobManagement />} />
           <Route path="/employer/dashboard/jobs/:jobId/applicants" element={<JobApplicants />} />
-          
           <Route path="/employer/dashboard/messages" element={<Messages />} />
           <Route path="/employer/dashboard/profile" element={<CompanyProfile />} />
           
-          {/* Nested Settings */}
           <Route path="/employer/dashboard/settings" element={<SettingsLayout />}>
             <Route index element={<ProfileInfo />} />
             <Route path="profile" element={<ProfileInfo />} />
@@ -79,8 +76,7 @@ function App() {
       {/* --- PROTECTED APPLICANT ROUTES --- */}
       <Route element={<ProtectedRoute allowedRole="applicant" />}>
         <Route path="/applicant/dashboard" element={<ApplicationDashboard />} />
-        <Route path="/applicant/resume" element={<AppliResume />} /> {/* Added this for your builder */}
-        <Route path="/applicant/survey" element={<Survey />} />
+        <Route path="/applicant/survey" element={<Survey />} /> {/* Ensure this matches */}
       </Route>
 
       {/* --- PROTECTED ADMIN ROUTES --- */}

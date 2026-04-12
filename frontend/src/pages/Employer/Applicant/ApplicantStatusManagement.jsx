@@ -25,6 +25,14 @@ const ApplicantStatusManagement = () => {
   const [actionLoading, setActionLoading] = useState(false);
 
   const hiringStages = ["Applied", "Initial Call", "HR Evaluation", "Technical Exam", "Final Interview", "Job Offer"];
+  const STAGE_MAP = [
+  "screening",   // Applied
+  "screening",   // Initial Call
+  "screening",   // HR Evaluation
+  "shortlisted", // Technical Exam
+  "interview",   // Final Interview
+  "offered"      // Job Offer
+];
 
   // Use onSnapshot for real-time updates so the UI reacts immediately to status changes
   useEffect(() => {
@@ -59,20 +67,26 @@ const ApplicantStatusManagement = () => {
 
   // --- FUNCTION: UPDATE STATUS (Shortlist, Reject, Archive) ---
   const handleUpdateStatus = async (newStatus) => {
-    setActionLoading(true);
-    try {
-      const docRef = doc(db, "applications", applicantId);
-      await updateDoc(docRef, { 
-        status: newStatus.toUpperCase() // Keeps it consistent with ViewApplicants filter
-      });
-      alert(`Applicant successfully ${newStatus.toLowerCase()}ed.`);
-    } catch (err) {
-      console.error("Status Update Error:", err);
-      alert("Failed to update status.");
-    } finally {
-      setActionLoading(false);
-    }
-  };
+  setActionLoading(true);
+  try {
+    const docRef = doc(db, "applications", applicantId);
+    const isShortlisted = newStatus.toUpperCase() === "SHORTLISTED";
+
+    await updateDoc(docRef, { 
+      status: newStatus.toUpperCase(),
+      // Syncing the stage string so the Applicant Stepper lights up
+      currentStage: isShortlisted ? "shortlisted" : "screening",
+      // CRITICAL: This triggers the Applicant Dashboard listener
+      updatedAt: new Date().toISOString() 
+    });
+    alert(`Applicant successfully ${newStatus.toLowerCase()}ed.`);
+  } catch (err) {
+    console.error("Status Update Error:", err);
+    alert("Failed to update status.");
+  } finally {
+    setActionLoading(false);
+  }
+};
 
   const handleSaveNote = async () => {
     setSaving(true);
@@ -99,15 +113,17 @@ const handleMoveStage = async (direction) => {
     newIndex = currentIndex - 1;
   }
 
-  if (newIndex === currentIndex) return; // No change
+  if (newIndex === currentIndex) return;
 
   setActionLoading(true);
   try {
     const docRef = doc(db, "applications", applicantId);
     await updateDoc(docRef, { 
       currentStageIndex: newIndex,
-      // Optional: Automatically update the general status when moving stages
-      status: newIndex === hiringStages.length - 1 ? "OFFERED" : "IN PROGRESS"
+      // Map the array index to the string the Applicant Dashboard uses
+      currentStage: STAGE_MAP[newIndex], 
+      status: newIndex === hiringStages.length - 1 ? "OFFERED" : "IN PROGRESS",
+      updatedAt: new Date().toISOString() 
     });
   } catch (err) {
     console.error("Stage Update Error:", err);

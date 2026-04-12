@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { auth } from '../services/firebase';
+import { useAuth } from '../contexts/AuthContext'; // Import useAuth to access refresh
 import { sendEmailVerification, reload } from 'firebase/auth';
-import { EnvelopeClosedIcon, CheckCircledIcon, ReloadIcon, ArrowLeftIcon } from '@radix-ui/react-icons';
+import { EnvelopeClosedIcon, CheckCircledIcon, ReloadIcon, ArrowLeftIcon, RocketIcon } from '@radix-ui/react-icons';
 
 const VerifyEmail = () => {
-  const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-  const [countdown, setCountdown] = useState(0); // For the resend timer
+  const [countdown, setCountdown] = useState(0); 
   
+  const { refreshUser } = useAuth(); // Get the refresh function from context
   const location = useLocation();
   const navigate = useNavigate();
   const email = location.state?.email || "your email";
@@ -18,25 +19,38 @@ const VerifyEmail = () => {
   useEffect(() => {
     let interval;
     
-    if (!isVerified) {
-      interval = setInterval(async () => {
-        if (auth.currentUser) {
+    const checkStatus = async () => {
+      if (auth.currentUser) {
+        try {
           await reload(auth.currentUser);
+          console.log("Is Email Verified?", auth.currentUser.emailVerified);
+          
           if (auth.currentUser.emailVerified) {
             setIsVerified(true);
             clearInterval(interval);
-            // Auto-redirect after success
+            
+            // CRITICAL: Refresh the AuthContext so ProtectedRoute knows we are verified
+            if (refreshUser) {
+              await refreshUser();
+            }
+
+            // Optional: Auto-redirect after a short delay
             setTimeout(() => {
-                // Redirect to Home, but tell Home to open the Login modal
-                navigate('/applicant/survey'); 
-              }, 2500);
+              navigate('/dashboard');
+            }, 2000);
           }
+        } catch (error) {
+          console.error("Error reloading user status:", error);
         }
-      }, 3000); 
+      }
+    };
+
+    if (!isVerified) {
+      interval = setInterval(checkStatus, 3000);
     }
 
     return () => clearInterval(interval);
-  }, [isVerified, navigate]);
+  }, [isVerified, navigate, refreshUser]);
 
   // 2. Countdown timer for Resend button
   useEffect(() => {
@@ -51,7 +65,7 @@ const VerifyEmail = () => {
     try {
       if (auth.currentUser) {
         await sendEmailVerification(auth.currentUser);
-        setCountdown(60); // Disable resend for 60 seconds
+        setCountdown(60); 
         alert("Verification link resent!");
       }
     } catch (err) {
@@ -70,34 +84,32 @@ const VerifyEmail = () => {
         </div>
 
         <h2 style={{ fontSize: '26px', fontWeight: 'bold', marginBottom: '15px' }}>
-          {isVerified ? "All Set!" : "Confirm Your Email"}
+          {isVerified ? "Email Verified!" : "Confirm Your Email"}
         </h2>
         
         <p style={{ color: '#666', fontSize: '15px', lineHeight: '1.6', marginBottom: '30px' }}>
           {isVerified 
-            ? "Your account is active. Redirecting you to login..." 
-            : <>Waiting for you to verify <b>{email}</b>. This page will update automatically once you click the link.</>}
+            ? "Success! Your account is now fully active. Redirecting you to your dashboard..." 
+            : <>We sent a link to <b>{email}</b>. Click the link in that email to verify your account. This page will update automatically.</>}
         </p>
         
-        {!isVerified && (
+        {!isVerified ? (
           <>
-            {/* This button is now purely decorative/informative since we auto-check */}
             <div style={{ 
               width: '100%', 
               padding: '15px', 
               backgroundColor: '#f3f4f6', 
-              color: '#9ca3af', 
+              color: '#6b7280', 
               borderRadius: '8px', 
               fontWeight: '600', 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center', 
               gap: '10px',
-              cursor: 'not-allowed',
               border: '1px dashed #d1d5db'
             }}>
               <ReloadIcon className="animate-spin" />
-              Checking verification status...
+              Waiting for confirmation...
             </div>
 
             <button 
@@ -117,6 +129,27 @@ const VerifyEmail = () => {
               {countdown > 0 ? `Resend email in ${countdown}s` : "Didn't get the email? Resend link"}
             </button>
           </>
+        ) : (
+          <button 
+            onClick={() => navigate('/dashboard')}
+            style={{
+              width: '100%',
+              padding: '16px',
+              backgroundColor: '#0051d3',
+              color: 'white',
+              borderRadius: '8px',
+              fontWeight: 'bold',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              fontSize: '16px'
+            }}
+          >
+            Go to Dashboard <RocketIcon />
+          </button>
         )}
 
         <button onClick={() => navigate('/')} style={{ marginTop: '30px', display: 'flex', alignItems: 'center', gap: '8px', color: '#9ca3af', border: 'none', background: 'none', cursor: 'pointer', margin: '30px auto 0' }}>

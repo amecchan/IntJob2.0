@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; 
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
-import { storage, db } from "../../services/firebase";
+import { storage, db, auth } from "../../services/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "../../contexts/ToastContext"; // Assuming you have this
@@ -146,19 +147,112 @@ const ResumeForm = () => {
 
   // --- EXPORT FUNCTIONS ---
   const downloadAsPDF = async () => {
-    const element = document.getElementById('resume-capture-area'); 
-    if (!element) return;
-    
-    const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-    
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`${formData.fullName || "Resume"}.pdf`);
-    setShowSaveMenu(false);
+    try {
+      setLoading(true);
+      const element = document.getElementById('resume-capture-area'); 
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      pdf.addImage(imgData, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+      pdf.save(`${formData.fullName || "Resume"}.pdf`);
+      addToast("PDF Exported!", "success");
+    } catch (err) {
+      addToast("Export failed", "error");
+    } finally {
+      setLoading(false);
+      setShowSaveMenu(false);
+    }
   };
+
+// --- THE UPDATED SUBMIT LOGIC ---
+  const handleSubmit = async () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return addToast("Please log in first", "error");
+    const navigate = useNavigate();
+
+    try {
+      setLoading(true);
+      addToast("Generating Resume PDF...", "info");
+
+      const element = document.getElementById('resume-capture-area');
+      
+      // OPTIONAL: Temporarily hide buttons/inputs you don't want in the PDF
+      const canvas = await html2canvas(element, { 
+        scale: 2, 
+        useCORS: true,
+        logging: false 
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      pdf.addImage(imgData, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+      const pdfBlob = pdf.output('blob');
+
+      addToast("Uploading to Cloud...", "info");
+
+      const storageRef = ref(storage, `resumes/${currentUser.uid}_${Date.now()}.pdf`);
+      await uploadBytes(storageRef, pdfBlob);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      await addDoc(collection(db, "applications"), {
+        uid: currentUser.uid,
+        name: formData.fullName,
+        email: formData.email,
+        phone: formData.phoneNumber,
+        resumeUrl: downloadURL,
+        status: "NEW",
+        createdAt: serverTimestamp(),
+      });
+
+      addToast("Application Submitted!", "success");
+      localStorage.removeItem("resume_draft");
+      
+      // The timeout ensures the user sees the success toast before leaving
+      setTimeout(() => navigate("/applicant-dashboard"), 1500);
+
+    } catch (error) {
+      console.error(error);
+      addToast("Submission failed.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+// --- Update your Buttons in the JSX ---
+
+<div className="floating-footer-actions">
+        <div className="actions-container">
+          <button type="button" className="btn-draft" onClick={saveDraft} disabled={loading}>
+            <Pencil2Icon /> Save Draft
+          </button>
+    
+    {/* EXPORT */}
+    <div className="save-as-wrapper">
+            <button type="button" className="btn-save-as" onClick={() => setShowSaveMenu(!showSaveMenu)} disabled={loading}>
+              <DownloadIcon /> Export <ChevronDownIcon />
+            </button>
+            {showSaveMenu && (
+              <div className="save-dropdown-menu">
+                <div className="save-opt" onClick={downloadAsPDF}><FileTextIcon /> PDF</div>
+              </div>
+            )}
+          </div>
+    
+    {/* COMPLETE APPLICATION */}
+    <button 
+            type="button" 
+            className={`btn-submit ${loading ? 'btn-loading' : ''}`} 
+            onClick={handleSubmit} 
+            disabled={loading}
+          >
+            {loading ? (
+              <><span className="spinner"></span> Processing...</>
+            ) : (
+              "Complete Application"
+            )}
+          </button>
+         </div>
+      </div>
 
   return (
     <div className="resume-view-wrapper">

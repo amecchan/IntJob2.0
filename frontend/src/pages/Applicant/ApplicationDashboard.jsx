@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../services/firebase"; 
 import { 
   doc, getDoc, collection, query, where, 
-  onSnapshot, orderBy, updateDoc, writeBatch 
+  onSnapshot, orderBy, writeBatch 
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -11,7 +11,7 @@ import {
   HamburgerMenuIcon, MagnifyingGlassIcon, BellIcon, HomeIcon, 
   LayersIcon, GearIcon, ExitIcon, EnvelopeClosedIcon, 
   CheckIcon, PersonIcon, FileTextIcon, BackpackIcon,
-  DotFilledIcon, CheckCircledIcon,
+  DotFilledIcon, RocketIcon
 } from '@radix-ui/react-icons';
 
 // Page View Imports
@@ -35,142 +35,122 @@ const ApplicationDashboard = () => {
   
   // Data State
   const [userData, setUserData] = useState(null);
-  const [firstName, setFirstName] = useState(""); // Dynamic Name State
+  const [firstName, setFirstName] = useState("");
   const [notifications, setNotifications] = useState([]);
   const [hasUnread, setHasUnread] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Job & Process State
+  const [recommendedJobs, setRecommendedJobs] = useState([]);
+  const [appStats, setAppStats] = useState({ 
+    total: 0, 
+    screening: 0, 
+    shortlisted: 0, 
+    interview: 0, 
+    test: 0, 
+    offered: 0 
+  });
+  const [activeApp, setActiveApp] = useState(null);
+
   const navigate = useNavigate();
   const notifRef = useRef(null);
 
-  // For Job and Insights and Recommendations"
-  const [recommendedJobs, setRecommendedJobs] = useState([]);
-const [appStats, setAppStats] = useState({ total: 0, pending: 0, accepted: 0 });
-const [insights, setInsights] = useState({ matchRate: 0, message: "" });
-
-useEffect(() => {
-  let unsubNotifs = null;
-  let unsubJobs = null;
-  let unsubApps = null;
-
-  const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      const userDocRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userDocRef);
-      
-      if (userSnap.exists()) {
-        const data = userSnap.data();
-        setUserData(data);
-        const nameParts = data.fullName ? data.fullName.trim().split(" ") : ["Guest"];
-        setFirstName(nameParts[0]);
-
-        // 1. Listen for Recommended Jobs (Real-time)
-        const jobsQuery = query(collection(db, "jobs"), where("status", "==", "open"));
-        unsubJobs = onSnapshot(jobsQuery, (snapshot) => {
-          const allJobs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-          const userSkills = data.selectedSkills || [];
-          
-          const matches = allJobs.filter(job => 
-            job.skillsRequired?.some(s => userSkills.includes(s))
-          );
-          setRecommendedJobs(matches.slice(0, 3));
-
-          // 2. Generate Insights based on Survey/Profile
-          const rate = matches.length > 0 ? Math.min(matches.length * 20, 100) : 0;
-          setInsights({
-            matchRate: rate,
-            message: rate > 50 ? "Your profile is highly competitive!" : "Consider adding more skills to improve matches."
-          });
-        });
-
-        // 3. Listen for Application Progress
-        const appsQuery = query(collection(db, "applications"), where("userId", "==", user.uid));
-        unsubApps = onSnapshot(appsQuery, (snapshot) => {
-          const apps = snapshot.docs.map(d => d.data());
-          setAppStats({
-            total: apps.length,
-            pending: apps.filter(a => a.status === "pending").length,
-            accepted: apps.filter(a => a.status === "accepted").length
-          });
-        });
-
-        // 4. Notifications (Existing logic)
-        const qNotif = query(collection(db, "notifications"), where("userId", "==", user.uid), orderBy("createdAt", "desc"));
-        unsubNotifs = onSnapshot(qNotif, (snapshot) => {
-          const notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          setNotifications(notifs);
-          setHasUnread(notifs.some(n => !n.read));
-        });
-      }
-      setLoading(false);
-    } else {
-      navigate("/");
-    }
-  });
-
-  return () => {
-    unsubscribeAuth();
-    if (unsubNotifs) unsubNotifs();
-    if (unsubJobs) unsubJobs();
-    if (unsubApps) unsubApps();
-  };
-}, [navigate]);
-
-  // 1. Firebase Auth & Real-time Data
   useEffect(() => {
-    let unsubscribeNotifications = null;
+    let unsubNotifs = null;
+    let unsubJobs = null;
+    let unsubApps = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
-          // Listen to User Profile changes in real-time
           const userDocRef = doc(db, "users", user.uid);
           const userSnap = await getDoc(userDocRef);
           
           if (userSnap.exists()) {
             const data = userSnap.data();
             
-            if (data.role?.toLowerCase() === "applicant") {
-              setUserData(data);
-              
-              // Safely extract the first name
-              const nameParts = data.fullName ? data.fullName.trim().split(" ") : ["Guest"];
-              setFirstName(nameParts[0]);
-
-              // 2. Real-time Notifications
-              const q = query(
-                collection(db, "notifications"),
-                where("userId", "==", user.uid),
-                orderBy("createdAt", "desc")
-              );
-
-              unsubscribeNotifications = onSnapshot(q, (snapshot) => {
-                const notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                setNotifications(notifs);
-                setHasUnread(notifs.some(n => n.read === false));
-              });
-
-            } else {
-              navigate("/"); // Wrong role
+            if (data.role?.toLowerCase() !== "applicant") {
+              navigate("/");
+              return;
             }
+
+            setUserData(data);
+            const nameParts = data.fullName ? data.fullName.trim().split(" ") : ["Guest"];
+            setFirstName(nameParts[0]);
+
+            // 1. Listen for Recommended Jobs
+            const jobsQuery = query(collection(db, "jobs"), where("status", "==", "open"));
+            unsubJobs = onSnapshot(jobsQuery, (snapshot) => {
+              const allJobs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+              const userSkills = data.selectedSkills || [];
+              const matches = allJobs.filter(job => 
+                job.skillsRequired?.some(s => userSkills.includes(s))
+              );
+              setRecommendedJobs(matches.slice(0, 3));
+            });
+
+            // 2. REAL-TIME APPLICATION PROGRESS
+            // NOTE: Using 'userId' to match the Employer's update logic
+            const appsQuery = query(
+              collection(db, "applications"), 
+              where("applicantId", "==", user.uid),
+              orderBy("createdAt", "desc") 
+            );
+
+            unsubApps = onSnapshot(appsQuery, (snapshot) => {
+              const apps = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+              
+              // Calculate Stats
+              const stats = {
+                total: apps.length,
+                screening: apps.filter(a => a.currentStage?.toLowerCase() === "screening").length,
+                shortlisted: apps.filter(a => a.status === "SHORTLISTED" || a.currentStage?.toLowerCase() === "shortlisted").length,
+                interview: apps.filter(a => a.currentStage?.toLowerCase() === "interview").length,
+                test: apps.filter(a => a.currentStage?.toLowerCase() === "technical").length,
+                offered: apps.filter(a => a.currentStage?.toLowerCase() === "offered").length
+              };
+              setAppStats(stats);
+
+              // Set the most recently updated application as the focus journey
+              if (apps.length > 0) {
+                setActiveApp(apps[0]);
+              }
+            }, (error) => {
+              console.error("Firestore Application Listener Error:", error);
+            });
+
+            // 3. Listen for Notifications
+            const qNotif = query(
+              collection(db, "notifications"), 
+              where("userId", "==", user.uid), 
+              orderBy("createdAt", "desc")
+            );
+            unsubNotifs = onSnapshot(qNotif, (snapshot) => {
+              const notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              setNotifications(notifs);
+              setHasUnread(notifs.some(n => !n.read));
+            });
+
           }
         } catch (error) {
-          console.error("Error fetching data:", error);
+          console.error("Dashboard Load Error:", error);
         } finally {
           setLoading(false);
         }
       } else {
-        navigate("/"); // No user
+        navigate("/");
       }
     });
 
     return () => {
       unsubscribeAuth();
-      if (unsubscribeNotifications) unsubscribeNotifications();
+      if (unsubNotifs) unsubNotifs();
+      if (unsubJobs) unsubJobs();
+      if (unsubApps) unsubApps();
     };
   }, [navigate]);
 
-  // Click-away listener for notifications
+  // Click-away for notifications
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (notifRef.current && !notifRef.current.contains(event.target)) {
@@ -184,11 +164,9 @@ useEffect(() => {
   const markAllAsRead = async () => {
     const unreadNotifs = notifications.filter(n => !n.read);
     if (unreadNotifs.length === 0) return;
-
     const batch = writeBatch(db);
     unreadNotifs.forEach((n) => {
-      const ref = doc(db, "notifications", n.id);
-      batch.update(ref, { read: true });
+      batch.update(doc(db, "notifications", n.id), { read: true });
     });
     await batch.commit();
   };
@@ -203,18 +181,15 @@ useEffect(() => {
   if (loading) return (
     <div className="loading-screen">
       <div className="spinner"></div>
-      <p>Loading your dashboard...</p>
+      <p>Syncing your profile...</p>
     </div>
   );
 
   return (
     <div className="app-container">
-      {/* Sidebar Navigation */}
       <aside className={`app-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
         <div className="brand-section">
-          <div className="brand-logo">
-            <img src={logoImg} alt="IntJob Logo" />
-          </div>
+          <div className="brand-logo"><img src={logoImg} alt="Logo" /></div>
           {!isCollapsed && <span className="brand-name">IntJob</span>}
         </div>
 
@@ -235,34 +210,22 @@ useEffect(() => {
         </div>
       </aside>
 
-      {/* Main UI Area */}
       <main className="app-main">
         <header className="app-header">
           <div className="header-left">
-            <button className="icon-btn toggle-btn" onClick={() => setIsCollapsed(!isCollapsed)}>
-              <HamburgerMenuIcon />
-            </button>
+            <button className="icon-btn" onClick={() => setIsCollapsed(!isCollapsed)}><HamburgerMenuIcon /></button>
             <div className="header-search">
               <MagnifyingGlassIcon />
-              <input 
-                type="text" 
-                placeholder="Search jobs, companies..." 
-                value={searchTerm} 
-                onChange={(e) => setSearchTerm(e.target.value)} 
-              />
+              <input type="text" placeholder="Search jobs..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
           </div>
           
           <div className="header-right">
-            {/* Notification Bell */}
             <div className="notif-container" ref={notifRef}>
-              <button 
-                className={`icon-btn notification-btn ${showNotifications ? 'active' : ''}`}
-                onClick={() => {
-                  setShowNotifications(!showNotifications);
-                  if (!showNotifications && hasUnread) markAllAsRead();
-                }}
-              >
+              <button className={`icon-btn ${showNotifications ? 'active' : ''}`} onClick={() => {
+                setShowNotifications(!showNotifications);
+                if (!showNotifications && hasUnread) markAllAsRead();
+              }}>
                 <BellIcon />
                 {hasUnread && <span className="dot"></span>}
               </button>
@@ -271,34 +234,24 @@ useEffect(() => {
                 <div className="notif-dropdown">
                   <div className="notif-header">
                     <span>Notifications</span>
-                    {hasUnread && <button onClick={markAllAsRead}>Mark all read</button>}
+                    {hasUnread && <button onClick={markAllAsRead}>Mark read</button>}
                   </div>
                   <div className="notif-list">
-                    {notifications.length > 0 ? (
-                      notifications.map(n => (
-                        <div key={n.id} className={`notif-item ${!n.read ? 'unread' : ''}`}>
-                          <div className="notif-content">
-                            <p className="notif-title">{n.title}</p>
-                            <p className="notif-msg">{n.message}</p>
-                            <span className="notif-time">
-                                {n.createdAt?.toDate().toLocaleDateString()}
-                            </span>
-                          </div>
-                          {!n.read && <DotFilledIcon className="unread-dot" />}
+                    {notifications.length > 0 ? notifications.map(n => (
+                      <div key={n.id} className={`notif-item ${!n.read ? 'unread' : ''}`}>
+                        <div className="notif-content">
+                          <p className="notif-title">{n.title}</p>
+                          <p className="notif-msg">{n.message}</p>
                         </div>
-                      ))
-                    ) : (
-                      <div className="notif-empty">No new notifications</div>
-                    )}
+                      </div>
+                    )) : <div className="notif-empty">All caught up!</div>}
                   </div>
                 </div>
               )}
             </div>
 
             <div className="user-pill" onClick={() => setCurrentView('profile')}>
-              <div className="pill-avatar">
-                {firstName?.charAt(0) || "U"}
-              </div>
+              <div className="pill-avatar">{firstName?.charAt(0)}</div>
               <div className="pill-info">
                 <span className="pill-name">{firstName}</span>
                 <span className="pill-role">Applicant</span>
@@ -311,67 +264,100 @@ useEffect(() => {
           {(() => {
             switch(currentView) {
               case "categories": return <JobCategories searchTerm={searchTerm} userSkills={userData?.selectedSkills} onSwitchView={setCurrentView} />;
-              case "inbox":      return <Inbox />;
-              case "status":     return <AppliStatus />;
-              case "resume":     return <AppliResume />;
-              case "profile":    return <AppliProfile userData={userData} />;
-              case "settings":   return <Settings />;
+              case "inbox": return <Inbox />;
+              case "status": return <AppliStatus />;
+              case "resume": return <AppliResume />;
+              case "profile": return <AppliProfile userData={userData} />;
+              case "settings": return <Settings />;
               default:
                 return (
                   <div className="dashboard-home">
-                  <header className="home-hero">
-                    <h1>Welcome back, {firstName}</h1>
-                    <p>Here’s what’s happening with your career search today.</p>
-                  </header>
+                    <header className="home-hero">
+                      <h1>Welcome back, {firstName}</h1>
+                      <p>Your job search is looking great today.</p>
+                    </header>
 
                     <section className="info-grid">
-                      {/* 1. PROGRESS CARD */}
-                      <div className="card stat-card progress-card-blue"> {/* Changed class name here */}
-                        <h3>Application Progress</h3>
-                        <div className="progress-stats">
-                          <div className="stat-item">
-                            <span className="stat-num">{appStats.total}</span>
-                            <span className="stat-label">Total</span>
-                          </div>
-                          <div className="stat-item">
-                            <span className="stat-num pending">{appStats.pending}</span>
-                            <span className="stat-label">Pending</span>
+                      {/* PROCESS STEPPER CARD */}
+                      <div className="card stat-card process-journey-card">
+                        <div className="card-header-flex">
+                          <h3>Application Journey</h3>
+                          <div className="stats-mini">
+                            <span className="badge-total">{appStats.total} Applied</span>
+                            {appStats.shortlisted > 0 && <span className="badge-shortlist">{appStats.shortlisted} Shortlisted</span>}
                           </div>
                         </div>
-                      </div>
 
-                      {/* 3. SKILLS CARD */}
-                        <div className="card stat-card featured-card">
-                          <h3>Registered Skills</h3>
-                          <div className="skill-tags">
-                            {userData?.selectedSkills?.map(skill => (
-                              <span key={skill} className="skill-pill">{skill}</span>
-                            ))}
-                          </div>
-                        </div>
-                    </section>
-                    
-                    <h2 className="section-heading">Recommended for You</h2>
-                      <div className="jobs-layout-grid">
-                        {recommendedJobs.length > 0 ? (
-                          recommendedJobs.map(job => (
-                            <div key={job.id} className="card job-card">
-                              <h4>{job.title}</h4>
-                              <p>{job.companyName}</p>
-                              <div className="job-tags">
-                                {job.skillsRequired?.slice(0, 2).map(s => <span className="mini-tag" key={s}>{s}</span>)}
-                              </div>
-                              <button className="btn-view" onClick={() => setCurrentView('categories')}>View Job</button>
+                        {activeApp ? (
+                          <div className="journey-stepper">
+                            <p className="active-job-title">Status for: <strong>{activeApp.jobTitle}</strong></p>
+                            <div className="stepper-track">
+                              <StepItem 
+                                label="Screen" 
+                                active={activeApp.currentStage?.toLowerCase() === 'screening'} 
+                                completed={['shortlisted', 'interview', 'technical', 'offered'].includes(activeApp.currentStage?.toLowerCase())} 
+                              />
+                              <StepItem 
+                                label="Shortlisted" 
+                                active={activeApp.currentStage?.toLowerCase() === 'shortlisted' || activeApp.status === 'SHORTLISTED'} 
+                                completed={['interview', 'technical', 'offered'].includes(activeApp.currentStage?.toLowerCase())} 
+                              />
+                              <StepItem 
+                                label="Interview" 
+                                active={activeApp.currentStage?.toLowerCase() === 'interview'} 
+                                completed={['technical', 'offered'].includes(activeApp.currentStage?.toLowerCase())} 
+                              />
+                              <StepItem 
+                                label="Offer" 
+                                active={activeApp.currentStage?.toLowerCase() === 'offered'} 
+                                completed={activeApp.currentStage?.toLowerCase() === 'offered'} 
+                              />
                             </div>
-                          ))
+                            <p className="journey-helper-text">
+                              {activeApp.currentStage?.toLowerCase() === 'screening' && "HR is reviewing your application materials."}
+                              {activeApp.currentStage?.toLowerCase() === 'shortlisted' && "You've been moved to the priority list! Expect a contact soon."}
+                              {activeApp.currentStage?.toLowerCase() === 'interview' && "Prepare yourself! An interview has been initiated."}
+                              {activeApp.currentStage?.toLowerCase() === 'offered' && "Congratulations! Check your messages for the offer details."}
+                            </p>
+                          </div>
                         ) : (
-                          <div className="empty-state-card">
-                            <BackpackIcon />
-                            <p>No new matches. Try updating your skills!</p>
+                          <div className="empty-journey">
+                            <RocketIcon />
+                            <p>Apply to your first job to track your progress!</p>
                           </div>
                         )}
                       </div>
+
+                      <div className="card stat-card featured-card">
+                        <h3>My Skills</h3>
+                        <div className="skill-tags">
+                          {userData?.selectedSkills?.length > 0 ? (
+                            userData.selectedSkills.map(skill => (
+                              <span key={skill} className="skill-pill">{skill}</span>
+                            ))
+                          ) : (
+                            <p className="text-slate-400 text-sm">Add skills in your profile to see matches.</p>
+                          )}
+                        </div>
+                      </div>
+                    </section>
+                    
+                    <h2 className="section-heading">Matches Based on Your Profile</h2>
+                    <div className="jobs-layout-grid">
+                      {recommendedJobs.length > 0 ? recommendedJobs.map(job => (
+                        <div key={job.id} className="card job-card">
+                          <h4>{job.title}</h4>
+                          <p>{job.companyName}</p>
+                          <button className="btn-view" onClick={() => setCurrentView('categories')}>View Details</button>
+                        </div>
+                      )) : (
+                        <div className="empty-state-card">
+                          <BackpackIcon />
+                          <p>No matches yet. Keep exploring!</p>
+                        </div>
+                      )}
                     </div>
+                  </div>
                 );
             }
           })()}
@@ -381,10 +367,18 @@ useEffect(() => {
   );
 };
 
+const StepItem = ({ label, active, completed }) => (
+  <div className={`step-node ${active ? 'active' : ''} ${completed ? 'completed' : ''}`}>
+    <div className="step-circle">
+      {completed ? <CheckIcon /> : active ? <DotFilledIcon className="animate-pulse" /> : <DotFilledIcon />}
+    </div>
+    <span className="step-label">{label}</span>
+  </div>
+);
+
 const NavItem = ({ icon, label, active, onClick, collapsed }) => (
   <button className={`nav-button ${active ? 'active' : ''}`} onClick={onClick}>
-    {icon}
-    {!collapsed && <span>{label}</span>}
+    {icon} {!collapsed && <span>{label}</span>}
   </button>
 );
 

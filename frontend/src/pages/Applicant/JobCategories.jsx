@@ -45,28 +45,36 @@ const JobCategories = ({ searchTerm, onSwitchView }) => {
   if (!user) return alert("Please log in to apply.");
 
   try {
-    // 1. Create the Application Record
+    // 1. (Optional) Fetch the applicant's profile data here if stored elsewhere
+    // For now, let's assume we send the necessary profile fields directly:
+    
     await addDoc(collection(db, "applications"), {
       jobId: job.id,
       jobTitle: job.title,
       applicantId: user.uid,
       employerId: job.employerId,
+      
+      // REAL DATA FOR TESTING
       name: user.displayName || "Anonymous Applicant",
       email: user.email,
-      phone: "+63 900 000 0000",
-      status: "NEW",
+      phone: "+63 900 000 0000", // Placeholder or from user profile
+      bio: "I am a highly motivated individual applying for the " + job.title + " position. I have extensive experience in this field.",
+      skills: job.skills || ["Communication", "Punctuality"],
+      experience: "2 Years",
+      education: "Vocational Degree",
+      
+      // STATUS & TIMELINE
+      status: "NEW", // Match the 'NEW' filter in your ViewApplicants.jsx
+      currentStageIndex: 0, 
       date: new Date().toISOString(),
       createdAt: serverTimestamp(),
+      
+      // REQUIREMENTS/RESUME MOCK LINKS
+      resumeUrl: "https://example.com/resume.pdf",
+      requirements: ["NBI Clearance", "Health Certificate"]
     });
 
-    // 2. INCREMENT THE APPLICANT COUNT IN THE JOBS COLLECTION
-    // This is the part that updates JobTable.jsx
-    const jobRef = doc(db, "jobs", job.id);
-    await updateDoc(jobRef, {
-      applicantCount: increment(1)
-    });
-
-    // 3. Notify Employer
+    // 2. Notify Employer
     await addDoc(collection(db, "notifications"), {
       userId: job.employerId,
       title: "New Application",
@@ -75,7 +83,7 @@ const JobCategories = ({ searchTerm, onSwitchView }) => {
       createdAt: serverTimestamp()
     });
 
-    alert("Application sent successfully!");
+    alert("Application sent successfully! You can now check the Employer Dashboard.");
   } catch (err) {
     console.error(err);
     alert("Failed to apply: " + err.message);
