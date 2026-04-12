@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { db, auth } from "../../services/firebase";
 import { 
   collection, onSnapshot, query, where, 
-  addDoc, serverTimestamp, getDocs
+  addDoc, serverTimestamp, getDocs,
+  doc, updateDoc, increment // <--- ADD THESE
 } from "firebase/firestore";
 import { 
   BackpackIcon, CheckIcon, QuestionMarkCircledIcon, 
@@ -52,8 +53,7 @@ const JobCategories = ({ searchTerm, onSwitchView }) => {
         jobId: job.id,
         jobTitle: job.title,
         applicantId: user.uid,
-        employerId: job.employerId, // IMPORTANT: Ensure this matches the dashboard query
-        
+        employerId: job.employerId,
         name: user.displayName || "Anonymous Applicant",
         email: user.email,
         status: "NEW",
@@ -63,7 +63,7 @@ const JobCategories = ({ searchTerm, onSwitchView }) => {
       });
 
       // 2. Increment the applicantCount on the JOB document
-      // This keeps the 'jobs' collection in sync with the 'applications' collection
+      // Note: 'doc', 'updateDoc', and 'increment' must be imported
       const jobRef = doc(db, "jobs", job.id);
       await updateDoc(jobRef, {
         applicantCount: increment(1)
@@ -80,7 +80,7 @@ const JobCategories = ({ searchTerm, onSwitchView }) => {
 
       alert("Application sent successfully!");
     } catch (err) {
-      console.error(err);
+      console.error("Apply error:", err);
       alert("Failed to apply: " + err.message);
     }
   };
