@@ -380,3 +380,53 @@
   justify-content: center;
   height: 100vh;
 }
+
+/* Add/Update these specific sections in your AppliDash.css */
+
+/* === New Blue Card Styling (Shared) === */
+.blue-card {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.blue-card h3 {
+  color: white !important;
+  margin-bottom: 12px;
+}
+
+/* === Remove Hover Effects === */
+.no-hover {
+  transform: none !important;
+  box-shadow: none !important;
+  cursor: default !important;
+}
+
+.no-hover:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* === White Skill Pills for Blue Background === */
+.skill-pill-white {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* === Process Journey Specific Fixes === */
+.blue-card .active-job-title {
+  color: white;
+  opacity: 0.9;
+}
+
+.blue-card .journey-helper-text {
+  margin-top: 15px;
+  font-size: 0.85rem;
+  opacity: 0.8;
+  color: white;
+}

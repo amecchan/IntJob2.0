@@ -8,7 +8,9 @@ import {
   UpdateIcon, 
   ArchiveIcon, 
   BackpackIcon,
-  CheckIcon
+  CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
 } from '@radix-ui/react-icons';
 import { doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../../services/firebase';
@@ -24,17 +26,20 @@ const ApplicantStatusManagement = () => {
   const [saving, setSaving] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
+  // These stages map to the visual labels in the ProgressTrackerCard
   const hiringStages = ["Applied", "Initial Call", "HR Evaluation", "Technical Exam", "Final Interview", "Job Offer"];
+  
+  // CRITICAL: This maps the hiringStages array index to the 'currentStage' string 
+  // that the ApplicantDashboard uses to light up its 4-step stepper.
   const STAGE_MAP = [
-  "screening",   // Applied
-  "screening",   // Initial Call
-  "screening",   // HR Evaluation
-  "shortlisted", // Technical Exam
-  "interview",   // Final Interview
-  "offered"      // Job Offer
-];
+    "screening",   // Applied
+    "screening",   // Initial Call
+    "screening",   // HR Evaluation
+    "shortlisted", // Technical Exam
+    "interview",   // Final Interview
+    "offered"      // Job Offer
+  ];
 
-  // Use onSnapshot for real-time updates so the UI reacts immediately to status changes
   useEffect(() => {
     if (!applicantId) return;
 
@@ -65,125 +70,111 @@ const ApplicantStatusManagement = () => {
     return () => unsubscribe();
   }, [applicantId]);
 
-  // --- FUNCTION: UPDATE STATUS (Shortlist, Reject, Archive) ---
   const handleUpdateStatus = async (newStatus) => {
-  setActionLoading(true);
-  try {
-    const docRef = doc(db, "applications", applicantId);
-    const isShortlisted = newStatus.toUpperCase() === "SHORTLISTED";
+    setActionLoading(true);
+    try {
+      const docRef = doc(db, "applications", applicantId);
+      const isShortlisted = newStatus.toUpperCase() === "SHORTLISTED";
+      const isRejected = newStatus.toUpperCase() === "REJECTED";
 
-    await updateDoc(docRef, { 
-      status: newStatus.toUpperCase(),
-      // Syncing the stage string so the Applicant Stepper lights up
-      currentStage: isShortlisted ? "shortlisted" : "screening",
-      // CRITICAL: This triggers the Applicant Dashboard listener
-      updatedAt: new Date().toISOString() 
-    });
-    alert(`Applicant successfully ${newStatus.toLowerCase()}ed.`);
-  } catch (err) {
-    console.error("Status Update Error:", err);
-    alert("Failed to update status.");
-  } finally {
-    setActionLoading(false);
-  }
-};
+      // Prepare the update object
+      const updates = {
+        status: newStatus.toUpperCase(),
+        updatedAt: new Date().toISOString()
+      };
+
+      if (isShortlisted) {
+        // Force the progress bar to move to the 'Shortlisted' stage (Index 3: Technical Exam)
+        updates.currentStageIndex = 3; 
+        updates.currentStage = "shortlisted";
+      } else if (isRejected) {
+        // Optionally keep the index where it is but mark as screening or update status
+        updates.currentStage = "screening"; 
+      }
+
+      await updateDoc(docRef, updates);
+      
+      alert(`Applicant successfully ${newStatus.toLowerCase()}ed.`);
+    } catch (err) {
+      console.error("Status Update Error:", err);
+      alert("Failed to update status.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleMoveStage = async (direction) => {
+    const currentIndex = applicantData.currentStageIndex || 0;
+    let newIndex = currentIndex;
+
+    if (direction === 'next' && currentIndex < hiringStages.length - 1) {
+      newIndex = currentIndex + 1;
+    } else if (direction === 'back' && currentIndex > 0) {
+      newIndex = currentIndex - 1;
+    }
+
+    if (newIndex === currentIndex) return;
+
+    setActionLoading(true);
+    try {
+      const docRef = doc(db, "applications", applicantId);
+      await updateDoc(docRef, { 
+        currentStageIndex: newIndex,
+        // Sync the string key for the Applicant Dashboard
+        currentStage: STAGE_MAP[newIndex], 
+        status: newIndex === hiringStages.length - 1 ? "OFFERED" : "IN PROGRESS",
+        updatedAt: new Date().toISOString() 
+      });
+    } catch (err) {
+      console.error("Stage Update Error:", err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const handleSaveNote = async () => {
     setSaving(true);
     try {
       const docRef = doc(db, "applications", applicantId);
       await updateDoc(docRef, { remarks: remarks });
-      alert("Note saved successfully!");
+      alert("Note saved!");
     } catch (err) {
       console.error("Error saving note:", err);
-      alert("Failed to save note.");
     } finally {
       setSaving(false);
     }
   };
 
-  // --- FUNCTION: MOVE STAGE (Next/Back) ---
-const handleMoveStage = async (direction) => {
-  const currentIndex = applicantData.currentStageIndex || 0;
-  let newIndex = currentIndex;
-
-  if (direction === 'next' && currentIndex < hiringStages.length - 1) {
-    newIndex = currentIndex + 1;
-  } else if (direction === 'back' && currentIndex > 0) {
-    newIndex = currentIndex - 1;
-  }
-
-  if (newIndex === currentIndex) return;
-
-  setActionLoading(true);
-  try {
-    const docRef = doc(db, "applications", applicantId);
-    await updateDoc(docRef, { 
-      currentStageIndex: newIndex,
-      // Map the array index to the string the Applicant Dashboard uses
-      currentStage: STAGE_MAP[newIndex], 
-      status: newIndex === hiringStages.length - 1 ? "OFFERED" : "IN PROGRESS",
-      updatedAt: new Date().toISOString() 
-    });
-  } catch (err) {
-    console.error("Stage Update Error:", err);
-    alert("Failed to update hiring stage.");
-  } finally {
-    setActionLoading(false);
-  }
-};
-
-  if (loading) {
-    return (
-      <div className="w-full h-96 flex flex-col items-center justify-center opacity-50">
-        <UpdateIcon className="w-8 h-8 animate-spin text-indigo-600 mb-4" />
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-          Syncing Profile #{applicantId?.slice(0,6)}
-        </p>
-      </div>
-    );
-  }
-
-  if (!applicantData) return <div className="p-20 text-center">Applicant data not found.</div>;
+  if (loading) return <div className="loading-state">Syncing...</div>;
+  if (!applicantData) return <div className="p-20 text-center">Applicant not found.</div>;
 
   const isShortlisted = applicantData.status?.toUpperCase() === "SHORTLISTED";
 
   return (
     <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
       
-      {/* 1. Header */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-6">
         <div>
           <button onClick={() => navigate(-1)} className="back-link-styled group">
-            <ArrowLeftIcon className="transition-transform group-hover:-translate-x-1" /> Back to Profile
+            <ArrowLeftIcon /> Back to Profile
           </button>
           <div className="mt-4">
-            <h1 className="text-3xl font-black text-slate-800 tracking-tight">Applicant Status</h1>
+            <h1 className="text-3xl font-black text-slate-800 tracking-tight">Management Portal</h1>
             <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1">
-              Hiring Pipeline for REF: {applicantId.slice(0, 8)}
+              REF: {applicantId.slice(0, 8)}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <button 
-            className="status-action-secondary" 
-            onClick={() => handleUpdateStatus("REJECTED")}
-            disabled={actionLoading}
-          >
+        <div className="flex items-center gap-3">
+          <button className="status-action-secondary" onClick={() => handleUpdateStatus("REJECTED")}>
             <ArchiveIcon /> Reject
           </button>
           <button 
-            className="status-action-secondary"
-            onClick={() => handleUpdateStatus("ARCHIVED")}
-            disabled={actionLoading}
-          >
-            <TrashIcon /> Archive
-          </button>
-          <button 
-            className={`status-action-primary ${isShortlisted ? '!bg-emerald-500 !shadow-emerald-100' : ''}`}
+            className={`status-action-primary ${isShortlisted ? '!bg-emerald-500' : ''}`}
             onClick={() => handleUpdateStatus("SHORTLISTED")}
-            disabled={actionLoading || isShortlisted}
+            disabled={isShortlisted}
           >
             {isShortlisted ? <CheckIcon /> : <BackpackIcon />} 
             {isShortlisted ? "Shortlisted" : "Shortlist"}
@@ -191,67 +182,70 @@ const handleMoveStage = async (direction) => {
         </div>
       </div>
 
-      {/* 2. Key Info Card */}
-      <div className="applicant-info-card mb-10">
+      {/* Info Card */}
+      <div className="applicant-info-card mb-6">
         <div className="flex items-center gap-6">
           <div className="info-icon-square">
-            {applicantData.name ? applicantData.name.split(' ').map(n => n[0]).join('') : '?'}
+            {applicantData.name ? applicantData.name[0] : '?'}
           </div>
           <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div><span className="info-label">Applicant</span><span className="info-value text-indigo-700">{applicantData.name}</span></div>
+            <div><span className="info-label">Applicant</span><span className="info-value">{applicantData.name}</span></div>
             <div><span className="info-label">Position</span><span className="info-value">{applicantData.jobTitle}</span></div>
-            <div><span className="info-label">Applied Date</span><span className="info-value text-slate-500">{applicantData.appliedDate}</span></div>
-            <div><span className="info-label">Application Status</span><span className="info-value font-mono text-indigo-500">{applicantData.status}</span></div>
+            <div><span className="info-label">Current Stage</span><span className="info-value text-indigo-600">{hiringStages[applicantData.currentStageIndex]}</span></div>
+            <div><span className="info-label">Overall Status</span><span className="info-value font-mono">{applicantData.status}</span></div>
           </div>
         </div>
       </div>
 
-      {/* 3. Progress Tracker */}
-      <div className="mb-4">
+      {/* Progress Tracker with Controls */}
+      <div className="mb-10">
+        <div className="flex justify-end gap-2 mb-2">
+            <button 
+                onClick={() => handleMoveStage('back')} 
+                disabled={actionLoading || applicantData.currentStageIndex === 0}
+                className="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50"
+            >
+                <ChevronLeftIcon />
+            </button>
+            <button 
+                onClick={() => handleMoveStage('next')} 
+                disabled={actionLoading || applicantData.currentStageIndex === hiringStages.length - 1}
+                className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+            >
+                <ChevronRightIcon />
+            </button>
+        </div>
         <ProgressTrackerCard 
           stages={hiringStages} 
           currentStageIndex={applicantData.currentStageIndex} 
         />
       </div>
 
-      {/* 4. Notes and Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <div className="content-card !p-8 border border-slate-50 shadow-sm">
-            <div className="mb-6">
-              <h3 className="text-lg font-black text-slate-800">HR Remarks & Notes</h3>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Internal documentation only</p>
-            </div>
+            <h3 className="text-lg font-black text-slate-800 mb-4">Internal Remarks</h3>
             <textarea 
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
-              placeholder="Write or update remarks here..."
-              className="status-textarea"
-              rows={8}
+              className="status-textarea w-full p-4 border rounded-xl"
+              rows={6}
             />
-            <button 
-              onClick={handleSaveNote}
-              disabled={saving}
-              className="btn-save-note"
-            >
-              {saving ? <UpdateIcon className="animate-spin" /> : <UpdateIcon />}
-              <span>{saving ? "Saving..." : "Save Note"}</span>
+            <button onClick={handleSaveNote} disabled={saving} className="btn-save-note mt-4">
+              <UpdateIcon className={saving ? "animate-spin" : ""} />
+              <span>{saving ? "Saving..." : "Update Remarks"}</span>
             </button>
           </div>
         </div>
 
         <div className="lg:col-span-1 space-y-6">
-          <div className="contact-container">
-            <h3 className="section-title-small mb-2">Applicant Contact</h3>
-            <div className="space-y-3">
-              <div className="contact-item-row">{applicantData.contact.email}</div>
-              <div className="contact-item-row">{applicantData.contact.phone}</div>
-            </div>
-            <button className="message-btn-styled" onClick={() => navigate('/employer/dashboard/messages')}>
-              <ChatBubbleIcon /> Message Applicant
+          <div className="contact-container p-6 bg-slate-50 rounded-2xl">
+            <h3 className="font-bold text-slate-800 mb-4">Quick Actions</h3>
+            <button className="message-btn-styled w-full mb-3" onClick={() => navigate('/employer/dashboard/messages')}>
+              <ChatBubbleIcon /> Send Message
             </button>
-            <button className="download-btn-styled" onClick={() => window.open(applicantData.resumeUrl, '_blank')}>
-              <DownloadIcon /> Download Resume
+            <button className="download-btn-styled w-full" onClick={() => window.open(applicantData.resumeUrl, '_blank')}>
+              <DownloadIcon /> View Resume
             </button>
           </div>
         </div>

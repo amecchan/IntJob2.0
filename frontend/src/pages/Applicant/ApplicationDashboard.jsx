@@ -90,7 +90,6 @@ const ApplicationDashboard = () => {
             });
 
             // 2. REAL-TIME APPLICATION PROGRESS
-            // NOTE: Using 'userId' to match the Employer's update logic
             const appsQuery = query(
               collection(db, "applications"), 
               where("applicantId", "==", user.uid),
@@ -100,7 +99,6 @@ const ApplicationDashboard = () => {
             unsubApps = onSnapshot(appsQuery, (snapshot) => {
               const apps = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
               
-              // Calculate Stats
               const stats = {
                 total: apps.length,
                 screening: apps.filter(a => a.currentStage?.toLowerCase() === "screening").length,
@@ -111,7 +109,6 @@ const ApplicationDashboard = () => {
               };
               setAppStats(stats);
 
-              // Set the most recently updated application as the focus journey
               if (apps.length > 0) {
                 setActiveApp(apps[0]);
               }
@@ -278,8 +275,8 @@ const ApplicationDashboard = () => {
                     </header>
 
                     <section className="info-grid">
-                      {/* PROCESS STEPPER CARD */}
-                      <div className="card stat-card process-journey-card">
+                      {/* PROCESS STEPPER CARD - BLUE, NO HOVER */}
+                      <div className="card stat-card blue-card no-hover">
                         <div className="card-header-flex">
                           <h3>Application Journey</h3>
                           <div className="stats-mini">
@@ -328,15 +325,16 @@ const ApplicationDashboard = () => {
                         )}
                       </div>
 
-                      <div className="card stat-card featured-card">
+                      {/* SKILLS CARD - BLUE, NO HOVER */}
+                      <div className="card stat-card blue-card no-hover">
                         <h3>My Skills</h3>
                         <div className="skill-tags">
                           {userData?.selectedSkills?.length > 0 ? (
                             userData.selectedSkills.map(skill => (
-                              <span key={skill} className="skill-pill">{skill}</span>
+                              <span key={skill} className="skill-pill-white">{skill}</span>
                             ))
                           ) : (
-                            <p className="text-slate-400 text-sm">Add skills in your profile to see matches.</p>
+                            <p className="text-white opacity-60 text-sm">Add skills in your profile to see matches.</p>
                           )}
                         </div>
                       </div>

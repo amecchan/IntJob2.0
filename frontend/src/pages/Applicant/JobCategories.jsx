@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { db, auth } from "../../services/firebase";
 import { 
   collection, onSnapshot, query, where, 
-  addDoc, serverTimestamp, getDocs, limit,
-  doc, updateDoc, increment // <--- ADDED THESE
+  addDoc, serverTimestamp, getDocs
 } from "firebase/firestore";
 import { 
   BackpackIcon, CheckIcon, QuestionMarkCircledIcon, 
@@ -24,10 +23,14 @@ const JobCategories = ({ searchTerm, onSwitchView }) => {
   };
 
   useEffect(() => {
+    // Only fetch active jobs
     const q = query(collection(db, "jobs"), where("isActive", "==", true));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const jobs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setRealJobs(jobs);
+      setLoading(false);
+    }, (error) => {
+      console.error("Job fetch error:", error);
       setLoading(false);
     });
     return () => unsubscribe();
@@ -39,100 +42,81 @@ const JobCategories = ({ searchTerm, onSwitchView }) => {
     );
   };
 
-  // --- FUNCTIONALITY: APPLY ---
   const handleApply = async (job) => {
-  const user = auth.currentUser;
-  if (!user) return alert("Please log in to apply.");
+    const user = auth.currentUser;
+    if (!user) return alert("Please log in to apply.");
 
-  try {
-    // 1. (Optional) Fetch the applicant's profile data here if stored elsewhere
-    // For now, let's assume we send the necessary profile fields directly:
-    
-    await addDoc(collection(db, "applications"), {
-      jobId: job.id,
-      jobTitle: job.title,
-      applicantId: user.uid,
-      employerId: job.employerId,
-      
-      // REAL DATA FOR TESTING
-      name: user.displayName || "Anonymous Applicant",
-      email: user.email,
-      phone: "+63 900 000 0000", // Placeholder or from user profile
-      bio: "I am a highly motivated individual applying for the " + job.title + " position. I have extensive experience in this field.",
-      skills: job.skills || ["Communication", "Punctuality"],
-      experience: "2 Years",
-      education: "Vocational Degree",
-      
-      // STATUS & TIMELINE
-      status: "NEW", // Match the 'NEW' filter in your ViewApplicants.jsx
-      currentStageIndex: 0, 
-      date: new Date().toISOString(),
-      createdAt: serverTimestamp(),
-      
-      // REQUIREMENTS/RESUME MOCK LINKS
-      resumeUrl: "https://example.com/resume.pdf",
-      requirements: ["NBI Clearance", "Health Certificate"]
-    });
+    try {
+      // 1. Create the Application document
+      await addDoc(collection(db, "applications"), {
+        jobId: job.id,
+        jobTitle: job.title,
+        applicantId: user.uid,
+        employerId: job.employerId, // IMPORTANT: Ensure this matches the dashboard query
+        
+        name: user.displayName || "Anonymous Applicant",
+        email: user.email,
+        status: "NEW",
+        currentStageIndex: 0, 
+        date: new Date().toISOString(),
+        createdAt: serverTimestamp(),
+      });
 
-    // 2. Notify Employer
-    await addDoc(collection(db, "notifications"), {
-      userId: job.employerId,
-      title: "New Application",
-      message: `${user.displayName || 'Someone'} applied for ${job.title}`,
-      isRead: false,
-      createdAt: serverTimestamp()
-    });
+      // 2. Increment the applicantCount on the JOB document
+      // This keeps the 'jobs' collection in sync with the 'applications' collection
+      const jobRef = doc(db, "jobs", job.id);
+      await updateDoc(jobRef, {
+        applicantCount: increment(1)
+      });
 
-    alert("Application sent successfully! You can now check the Employer Dashboard.");
-  } catch (err) {
-    console.error(err);
-    alert("Failed to apply: " + err.message);
-  }
-};
-
-  // --- FUNCTIONALITY: INQUIRY ---
-  const handleInquiry = async (job) => {
-  const user = auth.currentUser;
-  if (!user) return alert("Please log in to inquire.");
-
-  // Prevent inquiring to yourself
-  if (user.uid === job.employerId) return alert("You cannot message yourself.");
-
-  try {
-    const chatRef = collection(db, "chats");
-    
-    // We query to see if a chat with this employer already exists
-    const q = query(
-      chatRef, 
-      where("participants", "array-contains", user.uid)
-    );
-    
-    const snap = await getDocs(q);
-    
-    // Manual check for the employerId to avoid needing complex Firebase indexes immediately
-    const existingChat = snap.docs.find(doc => 
-      doc.data().participants.includes(job.employerId)
-    );
-
-    if (existingChat) {
-      console.log("Chat exists, redirecting...");
-      onSwitchView('inbox'); 
-    } else {
-      console.log("Creating new chat...");
-      await addDoc(collection(db, "chats"), {
-        participants: [user.uid, job.employerId],
-        employerName: job.company || "Hiring Manager",
-        lastMessage: "I am interested in the " + job.title + " position.",
-        updatedAt: serverTimestamp(),
+      // 3. Notify Employer
+      await addDoc(collection(db, "notifications"), {
+        userId: job.employerId,
+        title: "New Application",
+        message: `${user.displayName || 'Someone'} applied for ${job.title}`,
+        isRead: false,
         createdAt: serverTimestamp()
       });
-      onSwitchView('inbox');
+
+      alert("Application sent successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to apply: " + err.message);
     }
-  } catch (err) {
-    console.error("Inquiry Error:", err);
-    alert("Could not start a conversation: " + err.message);
-  }
-};
+  };
+
+  const handleInquiry = async (job) => {
+    const user = auth.currentUser;
+    if (!user) return alert("Please log in to inquire.");
+    if (user.uid === job.employerId) return alert("You cannot message yourself.");
+
+    try {
+      const chatRef = collection(db, "chats");
+      const q = query(chatRef, where("participants", "array-contains", user.uid));
+      const snap = await getDocs(q);
+      
+      const existingChat = snap.docs.find(doc => 
+        doc.data().participants.includes(job.employerId)
+      );
+
+      if (existingChat) {
+        onSwitchView('inbox'); 
+      } else {
+        await addDoc(collection(db, "chats"), {
+          participants: [user.uid, job.employerId],
+          employerName: job.company || "Hiring Manager",
+          applicantName: user.displayName || "Applicant", // Added for employer view
+          lastMessage: `I am interested in the ${job.title} position.`,
+          updatedAt: serverTimestamp(),
+          createdAt: serverTimestamp()
+        });
+        onSwitchView('inbox');
+      }
+    } catch (err) {
+      console.error("Inquiry Error:", err);
+      alert("Could not start conversation.");
+    }
+  };
 
   const filteredResults = realJobs.filter(job => {
     const matchesFilter = selectedFilters.length === 0 || 
@@ -207,7 +191,7 @@ const JobCategories = ({ searchTerm, onSwitchView }) => {
           ) : (
             <div className="empty-results">
               <QuestionMarkCircledIcon />
-              <p>Select categories on the left to see available real jobs.</p>
+              <p>Select categories to see available jobs.</p>
             </div>
           )}
         </div>
