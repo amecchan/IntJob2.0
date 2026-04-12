@@ -12,7 +12,6 @@ const JobTable = ({ limit = null, onEdit, onDelete, onView }) => {
   useEffect(() => {
     if (!user) return;
 
-    // We listen to the "jobs" collection
     const jobsRef = collection(db, "jobs");
     const q = query(
       jobsRef, 
@@ -26,7 +25,7 @@ const JobTable = ({ limit = null, onEdit, onDelete, onView }) => {
       setJobs(jobsData);
       setLoading(false);
     }, (error) => {
-      console.error("Firestore Error:", error);
+      console.error("Firestore Jobs Error:", error);
       setLoading(false);
     });
 
@@ -75,10 +74,10 @@ const JobTable = ({ limit = null, onEdit, onDelete, onView }) => {
               </td>
               
               <td className="text-center">
-                {/* Visual Fix: Highlighting the count so you can see changes clearly */}
-                <span className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-xs font-black border border-indigo-100 min-w-[30px] inline-block">
-                  {job.applicantCount || 0}
-                </span>
+                {/* Using a dedicated component to fetch the count 
+                   ensures it's ALWAYS accurate and live.
+                */}
+                <ApplicantCounter jobId={job.id} />
               </td>
               
               <td>
@@ -122,6 +121,41 @@ const JobTable = ({ limit = null, onEdit, onDelete, onView }) => {
         )}
       </tbody>
     </table>
+  );
+};
+
+/**
+ * A small helper component that listens to the applications collection
+ * for a specific Job ID and displays the count in real-time.
+ */
+const ApplicantCounter = ({ jobId }) => {
+  const [count, setCount] = useState(0);
+  const { user } = useAuth(); // Need the logged-in user!
+
+  useEffect(() => {
+    if (!user) return;
+
+    // IMPORTANT: You must filter by employerId AND jobId 
+    // to satisfy the Security Rules.
+    const q = query(
+      collection(db, "applications"),
+      where("employerId", "==", user.uid), // This "proves" to the rule you own these
+      where("jobId", "==", jobId)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setCount(snapshot.size);
+    }, (err) => {
+      console.error("Counter error:", err);
+    });
+
+    return () => unsubscribe();
+  }, [jobId, user]);
+
+  return (
+    <span className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-xs font-black border border-indigo-100 min-w-[30px] inline-block">
+      {count}
+    </span>
   );
 };
 

@@ -5,14 +5,14 @@ import DeleteConfirmationModal from '../../components/Modals/DeleteConfirmationM
 import JobPreviewModal from '../../components/Modals/JobPreviewModal';
 import { MagnifyingGlassIcon, PlusIcon, LayersIcon } from '@radix-ui/react-icons';
 import { db } from '../../services/firebase';
-import { collection, getDocs, deleteDoc, doc, query, where } from 'firebase/firestore';
+import { collection, deleteDoc, doc, query, where, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../contexts/ToastContext'; // Import Toast
+import { useToast } from '../../contexts/ToastContext';
 import '../../styles/JobManagement.css';
 
 const JobManagement = () => {
   const { user } = useAuth();
-  const { showToast } = useToast(); // Initialize Toast
+  const { showToast } = useToast();
   const [counts, setCounts] = useState({ active: 0, totalApps: 0 });
   const [refreshTrigger, setRefreshTrigger] = useState(0); 
   const [searchTerm, setSearchTerm] = useState(""); 
@@ -24,32 +24,37 @@ const JobManagement = () => {
   const [selectedPreviewJob, setSelectedPreviewJob] = useState(null);
 
   useEffect(() => {
-    const fetchQuickStats = async () => {
-      if (!user?.uid) return;
-      try {
-        const jobsQuery = query(collection(db, "jobs"), where("employerId", "==", user.uid));
-        const jobsSnap = await getDocs(jobsQuery);
-        
-        const appsQuery = query(collection(db, "applications"), where("employerId", "==", user.uid));
-        const appsSnap = await getDocs(appsQuery);
-        
-        setCounts({
-          active: jobsSnap.docs.filter(d => d.data().isActive).length,
-          totalApps: appsSnap.size
-        });
-      } catch (err) {
-        showToast("Stats Error", "Could not load dashboard stats.", "error");
-      }
+    if (!user?.uid) return;
+
+    // 1. Listen for Jobs to count Active ones
+    const jobsQuery = query(collection(db, "jobs"), where("employerId", "==", user.uid));
+    const unsubJobs = onSnapshot(jobsQuery, (snapshot) => {
+      const activeCount = snapshot.docs.filter(d => d.data().status === "open" || d.data().isActive === true).length;
+      setCounts(prev => ({ ...prev, active: activeCount }));
+    }, (err) => {
+      console.error("Jobs Stats Error:", err);
+    });
+
+    // 2. Listen for Applications (Ensure field name matches 'employerId')
+    const appsQuery = query(collection(db, "applications"), where("employerId", "==", user.uid));
+    const unsubApps = onSnapshot(appsQuery, (snapshot) => {
+      setCounts(prev => ({ ...prev, totalApps: snapshot.size }));
+    }, (err) => {
+      console.error("Apps Stats Error:", err);
+      // If you get a permission error here, your Security Rules need to allow 
+      // the employer to read applications where resource.data.employerId == request.auth.uid
+    });
+
+    return () => {
+      unsubJobs();
+      unsubApps();
     };
-    fetchQuickStats();
-  }, [refreshTrigger, user?.uid, showToast]);
+  }, [user?.uid]);
 
   const handlePostSuccess = (type) => {
     setIsPostModalOpen(false);
     setEditData(null);
     setRefreshTrigger(prev => prev + 1); 
-    
-    // Logic to distinguish between Create and Update if needed
     const msg = editData ? "Job listing updated." : "Job listing created successfully.";
     showToast("Listing Saved", msg, "success");
   };
@@ -97,14 +102,13 @@ const JobManagement = () => {
         </div>
       </header>
 
-      {/* Stats and Table remains same */}
       <div className="mgmt-stats-grid">
         <div className="mgmt-stat-card">
           <span className="v text-indigo-600">{counts.active}</span>
           <span className="l">Active Listings</span>
         </div>
         <div className="mgmt-stat-card">
-          <span className="v">{counts.totalApps}</span>
+          <span className="v text-emerald-600">{counts.totalApps}</span>
           <span className="l">Total Applicants</span>
         </div>
       </div>
