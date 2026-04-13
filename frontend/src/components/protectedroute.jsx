@@ -47,20 +47,12 @@ const ProtectedRoute = ({ allowedRole, children }) => {
   const targetRole = allowedRole?.toLowerCase();
 
   if (targetRole && currentUserRole !== targetRole) {
-    console.warn(`Access Denied: User is ${currentUserRole}, needs ${targetRole}`);
-    
-    // REDIRECT LOGIC BASED ON ROLE
-    if (currentUserRole === 'employer') {
-      return <Navigate to="/employer/dashboard" replace />;
-    }
-    if (currentUserRole === 'applicant') {
-      // If an applicant tries to access an employer page, 
-      // send them to the survey (per your requirement)
-      return <Navigate to="/applicant/survey" replace />;
-    }
-    
-    return <Navigate to="/" replace />;
-  }
+  if (currentUserRole === 'employer') return <Navigate to="/employer/dashboard" replace />;
+  if (currentUserRole === 'applicant') return <Navigate to="/applicant/survey" replace />;
+  if (currentUserRole === 'admin') return <Navigate to="/admin/dashboard" replace />; // ADD THIS
+  
+  return <Navigate to="/" replace />;
+}
 
   // 5. Success - Render the protected content
   return children ? children : <Outlet />;
